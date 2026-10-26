@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مخطط الـ HR الذكي - المنتجع السياحي</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #FDFBF7;
+            --bg-secondary: #FFFFFF;
+            --bg-tertiary: #F4F0EA;
+            --text-primary: #2C3E50;
+            --text-secondary: #6C7A89;
+            --teal-main: #0E8388;
+            --teal-dark: #2E4F4F;
+            --teal-light: #CBE4DE;
+            --teal-hover: #0B6B6F;
+            --accent-danger: #E74C3C;
+            --accent-warning: #F39C12;
+            --accent-success: #2ECC71;
+            --border-color: #E2DCD5;
+            --shadow-sm: 0 2px 5px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #12181B;
+            --bg-secondary: #1B242A;
+            --bg-tertiary: #243038;
+            --text-primary: #ECF0F1;
+            --text-secondary: #BDC3C7;
+            --teal-main: #2C999E;
+            --teal-dark: #1E3838;
+            --teal-light: #2A4849;
+            --teal-hover: #35B0B5;
+            --border-color: #2D3E4A;
+            --shadow-sm: 0 2px 5px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Cairo', system-ui, -apple-system, sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding-bottom: 60px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        header {
+            background: var(--bg-secondary);
+            border-bottom: 2px solid var(--teal-main);
+            padding: 12px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .logo-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-title h1 {
+            font-size: 1.2rem;
+            color: var(--teal-main);
+            font-weight: 700;
+        }
+
+        .user-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            background-color: var(--teal-main);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn:hover { background-color: var(--teal-hover); }
+
+        .btn-secondary {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover { background-color: var(--border-color); }
+
+        .btn-danger { background-color: var(--accent-danger); }
+        .btn-danger:hover { background-color: #c0392b; }
+
+        .btn-sm { padding: 4px 8px; font-size: 0.8rem; }
+
+        .card {
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .sync-badge {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .sync-online { background-color: #e8f8f5; color: var(--accent-success); }
+        .sync-offline { background-color: #fadbd8; color: var(--accent-danger); }
+        .sync-saving { background-color: #fef9e7; color: var(--accent-warning); }
+
+        #login-screen {
+            max-width: 400px;
+            margin: 60px auto;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+            text-align: right;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .tab-btn {
+            padding: 8px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            color: var(--text-primary);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .tab-btn.active {
+            background-color: var(--teal-main);
+            color: white;
+            border-color: var(--teal-main);
+        }
+
+        .smart-add-box { position: relative; }
+        .smart-preview {
+            font-size: 0.85rem;
+            color: var(--teal-main);
+            margin-top: 6px;
+            background: var(--teal-light);
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            display: none;
+        }
+        [data-theme="dark"] .smart-preview {
+            background: var(--teal-dark);
+            color: var(--teal-light);
+        }
+
+        .focus-section {
+            background: linear-gradient(135deg, var(--teal-dark), var(--teal-main));
+            color: white;
+            border: none;
+        }
+        .focus-section h2 { font-size: 1.1rem; margin-bottom: 10px; }
+        .focus-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(5px);
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .task-list { display: flex; flex-direction: column; gap: 10px; }
+        .task-item {
+            background: var(--bg-secondary);
+            border-right: 5px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border-top: 1px solid var(--border-color);
+            border-left: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .task-item.priority-عالية { border-right-color: var(--accent-danger); }
+        .task-item.priority-متوسطة { border-right-color: var(--accent-warning); }
+        .task-item.priority-منخفضة { border-right-color: var(--accent-success); }
+        .task-item.completed { opacity: 0.6; text-decoration: line-through; }
+
+        .task-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+        .task-title { font-weight: 700; cursor: pointer; flex-grow: 1; font-size: 1rem; }
+        .task-meta { display: flex; flex-wrap: wrap; gap: 6px; font-size: 0.75rem; }
+        .badge {
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+        }
+        .task-actions { display: flex; gap: 6px; align-items: center; }
+
+        .progress-container {
+            width: 100%;
+            background-color: var(--bg-tertiary);
+            height: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: var(--teal-main);
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+        .chart-box {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 14px;
+        }
+        .bar-chart { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+        .bar-row { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; }
+        .bar-label { width: 90px; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .bar-track { flex-grow: 1; background: var(--bg-tertiary); height: 16px; border-radius: 8px; overflow: hidden; }
+        .bar-fill { height: 100%; background: var(--teal-main); width: 0%; border-radius: 8px; transition: width 0.5s ease; }
+        .bar-val { width: 30px; text-align: right; font-weight: bold; }
+
+        .quick-templates { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 10px; }
+        .filter-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; align-items: center; }
+
+        .alert-box {
+            background-color: #fdf2e9;
+            border: 1px solid #f5b041;
+            color: #7e5109;
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        @media (max-width: 600px) {
+            .header-content { flex-direction: column; gap: 8px; text-align: center; }
+            .task-header { flex-direction: column; align-items: flex-start; }
+            .task-actions { width: 100%; justify-content: flex-end; margin-top: 6px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-content">
+            <div class="logo-title">
+                <h1>🌴 مخطط الـ HR الذكي</h1>
+                <span id="sync-status" class="sync-badge sync-online">مُتصل</span>
+            </div>
+            <div class="user-controls">
+                <span id="user-display" style="font-size:0.85rem; font-weight:bold;"></span>
+                <button class="btn btn-secondary btn-sm" onclick="toggleDarkMode()">🌓 Mode</button>
+                <button id="logout-btn" class="btn btn-danger btn-sm" onclick="logout()" style="display:none;">خروج</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+
+        <div id="login-screen" class="card">
+            <h2 style="color:var(--teal-main); margin-bottom:12px;">تسجيل الدخول</h2>
+            <form onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>اسم المستخدم</label>
+                    <input type="text" id="login-username" class="form-control" required placeholder="أدخل اسمك هنا...">
+                </div>
+                <div class="form-group">
+                    <label>كلمة المرور</label>
+                    <input type="password" id="login-password" class="form-control" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn" style="width:100%; margin-top:10px;">دخول النظام</button>
+            </form>
+            <p id="login-error" style="color:var(--accent-danger); font-size:0.85rem; margin-top:10px;"></p>
+        </div>
+
+        <div id="app-screen" style="display: none;">
+
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('tasks')">📋 المهام</button>
+                <button class="tab-btn" onclick="switchTab('analytics')">📊 لوحة التحليل</button>
+                <button id="team-tab-btn" class="tab-btn" onclick="switchTab('team')" style="display:none;">👥 الفريق والأعضاء</button>
+            </div>
+
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:bold; margin-bottom:4px;">
+                    <span>معدل إنجاز المهام اليومية/العامة</span>
+                    <span id="progress-text">0%</span>
+                </div>
+                <div class="progress-container">
+                    <div id="main-progress-bar" class="progress-bar"></div>
+                </div>
+                <div style="display:flex; justify-content:space-around; text-align:center; margin-top:10px; font-size:0.8rem;">
+                    <div><b id="stat-total">0</b><br><span style="color:var(--text-secondary)">الكل</span></div>
+                    <div><b id="stat-open" style="color:var(--teal-main)">0</b><br><span style="color:var(--text-secondary)">مفتوحة</span></div>
+                    <div><b id="stat-today" style="color:var(--accent-warning)">0</b><br><span style="color:var(--text-secondary)">الآن/اليوم</span></div>
+                    <div><b id="stat-late" style="color:var(--accent-danger)">0</b><br><span style="color:var(--text-secondary)">متأخرة</span></div>
+                    <div><b id="stat-done" style="color:var(--accent-success)">0</b><br><span style="color:var(--text-secondary)">مكتملة</span></div>
+                </div>
+            </div>
+
+            <div id="tab-tasks">
+
+                <div class="card smart-add-box">
+                    <label style="font-weight:700; display:block; margin-bottom:6px;">⚡ إضافة ذكية سريعة (اكتب بحرية):</label>
+                    <div style="display:flex; gap:8px;">
+                        <input type="text" id="smart-input" class="form-control" placeholder="مثال: مقابلة مرشحين استقبال بكره عاجل تكرار اسبوعي" oninput="parseSmartInput()">
+                        <button class="btn" onclick="addSmartTask()">إضافة</button>
+                    </div>
+                    <div id="smart-preview" class="smart-preview"></div>
+                    
+                    <div id="assign-container" style="margin-top:10px; display:none;">
+                        <label style="font-size:0.8rem;">تعيين المهام إلى:</label>
+                        <select id="assign-to-select" class="form-control" style="width:auto; display:inline-block; font-size:0.8rem; padding:4px;">
+                            <option value="SELF">لنفسي فقط</option>
+                            <option value="ALL">لكل أعضاء الفريق</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="margin-bottom:10px;">
+                    <span style="font-size:0.8rem; font-weight:bold; color:var(--text-secondary);">قوالب سريعة:</span>
+                    <div class="quick-templates">
+                        <button class="btn btn-secondary btn-sm" onclick="applyTemplate('مراجعة الحضور والانصراف', 'عمليات HR')">+ الحضور</button>
+                        <button class="btn btn-secondary btn-sm" onclick="applyTemplate('تحديث ملفات الموظفين', 'عمليات HR')">+ الملفات</button>
+                        <button class="btn btn-secondary btn-sm" onclick="applyTemplate('اجتماع رؤساء الأقسام', 'الاتصال الداخلي')">+ الاجتماع</button>
+                        <button class="btn btn-secondary btn-sm" onclick="applyTemplate('خطة تدريب العاملين', 'التدريب والتطوير')">+ التدريب</button>
+                        <button class="btn btn-secondary btn-sm" onclick="applyTemplate('نشرة داخلية للمنتجع', 'الاتصال الداخلي')">+ نشرة</button>
+                        <button class="btn btn-secondary btn-sm" onclick="applyTemplate('مقابلات توظيف جديدة', 'التوظيف')">+ مقابلات</button>
+                        <button class="btn btn-secondary btn-sm" onclick="applyTemplate('تقييم أداء الموسم', 'تقييم الأداء')">+ التقييم</button>
+                        <button class="btn btn-secondary btn-sm" onclick="applyTemplate('نشاط ارتباط العاملين', 'ارتباط الموظفين')">+ نشاط</button>
+                    </div>
+                </div>
+
+                <div id="overload-alert" class="alert-box" style="display:none;">
+                    <span>⚠️ عندك مهام كتيرة للنهاردة والمتأخرة أكثر من 5!</span>
+                    <button class="btn btn-sm btn-secondary" onclick="postponeLowPriorityTasks()">أجّل الأقل أهمية لبكره</button>
+                </div>
+
+                <div class="card focus-section" id="focus-box">
+                    <h2>🔥 ركّز النهاردة (أعلى الأولويات)</h2>
+                    <div id="focus-list"></div>
+                </div>
+
+                <div class="filter-bar card">
+                    <input type="text" id="search-filter" class="form-control" placeholder="🔍 بحث..." style="max-width:180px;" oninput="renderTasks()">
+                    <select id="status-filter" class="form-control" style="max-width:130px;" onchange="renderTasks()">
+                        <option value="ALL">كل المهام</option>
+                        <option value="TODAY">النهاردة</option>
+                        <option value="WEEK">الأسبوع ده</option>
+                        <option value="LATE">متأخرة</option>
+                        <option value="DONE">خلصت</option>
+                    </select>
+                    <select id="category-filter" class="form-control" style="max-width:140px;" onchange="renderTasks()">
+                        <option value="ALL">كل التصنيفات</option>
+                    </select>
+                    <button class="btn btn-secondary btn-sm" onclick="copyWeeklySummary()">📋 نسخ ملخص الأسبوع</button>
+                </div>
+
+                <div id="task-list" class="task-list"></div>
+            </div>
+
+            <div id="tab-analytics" style="display:none;">
+                <div class="card">
+                    <h3>💡 ملاحظات وتحليلات ذكية</h3>
+                    <div id="smart-insights" style="margin-top:8px; font-size:0.9rem; line-height:1.6; color:var(--teal-dark);"></div>
+                </div>
+
+                <div class="chart-grid">
+                    <div class="chart-box">
+                        <h4>المنجز آخر 7 أيام</h4>
+                        <div id="chart-completed-7days" class="bar-chart"></div>
+                    </div>
+                    <div class="chart-box">
+                        <h4>توزيع المهام حسب التصنيف</h4>
+                        <div id="chart-category" class="bar-chart"></div>
+                    </div>
+                    <div class="chart-box">
+                        <h4>المهام المفتوحة حسب الأولوية</h4>
+                        <div id="chart-priority" class="bar-chart"></div>
+                    </div>
+                    <div id="admin-team-chart-box" class="chart-box" style="display:none;">
+                        <h4>نسبة إنجاز الأعضاء (للأدمن)</h4>
+                        <div id="chart-team-completion" class="bar-chart"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-team" style="display:none;">
+                <div class="card">
+                    <h3>➕ إضافة عضو جديد للفريق</h3>
+                    <form onsubmit="handleAddUser(event)" style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+                        <input type="text" id="new-user-name" class="form-control" placeholder="اسم المستخدم" required style="flex:1; min-width:140px;">
+                        <input type="password" id="new-user-pass" class="form-control" placeholder="كلمة السر (4 حروف+)" minlength="4" required style="flex:1; min-width:140px;">
+                        <select id="new-user-role" class="form-control" style="width:120px;">
+                            <option value="USER">مستخدم</option>
+                            <option value="ADMIN">أدمن</option>
+                        </select>
+                        <button type="submit" class="btn">حفظ العضو</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3>👥 قائمة أعضاء الفريق ومتابعة الأداء</h3>
+                    <div id="team-list" style="margin-top:10px;"></div>
+                </div>
+
+                <div id="member-tasks-preview" class="card" style="display:none;">
+                    <h4 id="member-preview-title">مهام العضو</h4>
+                    <div id="member-tasks-list" class="task-list" style="margin-top:10px;"></div>
+                </div>
+
+                <div class="card">
+                    <h3>💾 النسخ الاحتياطي والاستعادة</h3>
+                    <div style="display:flex; gap:10px; margin-top:10px;">
+                        <button class="btn btn-secondary" onclick="exportBackup()">تحميل نسخة احتياطية JSON</button>
+                        <input type="file" id="import-file" style="display:none;" onchange="importBackup(event)">
+                        <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()">استعادة من ملف JSON</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // تم ربط رابط السيرفر بتاعك جاهز هنا تلقائياً:
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyStE7FnEYo3a645V_PR6-JMDP4saRE3t9SjzJe8GuGfPT8G07hP6CIl9iQwZLddeFX/exec";
+        
+        let currentUser = null;
+        let categories = ["عمليات HR", "ارتباط الموظفين", "التدريب والتطوير", "الاتصال الداخلي", "التوظيف", "تقييم الأداء", "أخرى"];
+        let db = {
+            users: [],
+            tasks: []
+        };
+        let saveTimeout = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            checkLocalStorageAuth();
+            populateCategoryFilter();
+            setInterval(autoSync, 20000);
+        });
+
+        function initTheme() {
+            const savedTheme = localStorage.getItem('hr_theme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        }
+
+        function toggleDarkMode() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const target = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', target);
+            localStorage.setItem('hr_theme', target);
+        }
+
+        function checkLocalStorageAuth() {
+            const auth = localStorage.getItem('hr_auth');
+            if (auth) {
+                currentUser = JSON.parse(auth);
+                showAppUI();
+                syncData();
+            }
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('login-username').value.trim();
+            const p = document.getElementById('login-password').value.trim();
+            const errEl = document.getElementById('login-error');
+            errEl.innerText = "";
+
+            try {
+                updateSyncBadge('saving', 'جاري التحقق...');
+                const res = await apiCall('login', { username: u, password: p });
+                if (res.status === 'success') {
+                    currentUser = { username: res.username, role: res.role, password: p };
+                    localStorage.setItem('hr_auth', JSON.stringify(currentUser));
+                    showAppUI();
+                    syncData();
+                } else {
+                    errEl.innerText = res.message || "فشل تسجيل الدخول";
+                    updateSyncBadge('offline', 'خطأ في الدخول');
+                }
+            } catch (err) {
+                if (u.toUpperCase() === 'OMAR' && p === '8955') {
+                    currentUser = { username: 'OMAR', role: 'ADMIN', password: p };
+                    localStorage.setItem('hr_auth', JSON.stringify(currentUser));
+                    showAppUI();
+                    loadLocalFallback();
+                    alert("تم الدخول بالوضع المحلي (السيرفر غير متصل)");
+                } else {
+                    errEl.innerText = "تعذر الاتصال بالسيرفر. اعد المحاولة.";
+                    updateSyncBadge('offline', 'غير متصل');
+                }
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('hr_auth');
+            document.getElementById('login-screen').style.display = 'block';
+            document.getElementById('app-screen').style.display = 'none';
+            document.getElementById('logout-btn').style.display = 'none';
+            document.getElementById('user-display').innerText = '';
+        }
+
+        function showAppUI() {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('app-screen').style.display = 'block';
+            document.getElementById('logout-btn').style.display = 'inline-block';
+            document.getElementById('user-display').innerText = `${currentUser.username} (${currentUser.role === 'ADMIN' ? 'أدمن' : 'مستخدم'})`;
+            
+            if (currentUser.role === 'ADMIN') {
+                document.getElementById('team-tab-btn').style.display = 'inline-block';
+                document.getElementById('assign-container').style.display = 'block';
+                document.getElementById('admin-team-chart-box').style.display = 'block';
+                updateAssignOptions();
+            } else {
+                document.getElementById('team-tab-btn').style.display = 'none';
+                document.getElementById('assign-container').style.display = 'none';
+                document.getElementById('admin-team-chart-box').style.display = 'none';
+            }
+        }
+
+        async function apiCall(action, payload = {}) {
+            payload.action = action;
+            if (currentUser) {
+                payload.authUser = currentUser.username;
+                payload.authPass = currentUser.password;
+            }
+
+            const response = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload)
+            });
+            return await response.json();
+        }
+
+        async function syncData() {
+            if (!currentUser) return;
+            updateSyncBadge('saving', 'جاري المزامنة...');
+            try {
+                const res = await apiCall('getData');
+                if (res.status === 'success') {
+                    db.tasks = res.data.tasks || [];
+                    db.users = res.data.users || [];
+                    localStorage.setItem('hr_local_db', JSON.stringify(db));
+                    updateSyncBadge('online', 'تم الحفظ والمزامنة');
+                    renderAll();
+                } else {
+                    throw new Error(res.message);
+                }
+            } catch (err) {
+                updateSyncBadge('offline', 'يعمل أوفلاين');
+                loadLocalFallback();
+            }
+        }
+
+        function triggerAutoSave() {
+            updateSyncBadge('saving', 'تغييرات لم تحفظ...');
+            localStorage.setItem('hr_local_db', JSON.stringify(db));
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(async () => {
+                try {
+                    const res = await apiCall('saveData', { tasks: db.tasks, users: db.users });
+                    if (res.status === 'success') {
+                        updateSyncBadge('online', 'تم الحفظ تلقائياً');
+                    } else {
+                        updateSyncBadge('offline', 'خطأ بالحفظ');
+                    }
+                } catch (e) {
+                    updateSyncBadge('offline', 'حُفظ محلياً فقط');
+                }
+            }, 1000);
+        }
+
+        function loadLocalFallback() {
+            const localData = localStorage.getItem('hr_local_db');
+            if (localData) {
+                db = JSON.parse(localData);
+            }
+            renderAll();
+        }
+
+        function updateSyncBadge(status, text) {
+            const badge = document.getElementById('sync-status');
+            badge.className = `sync-badge sync-${status}`;
+            badge.innerText = text;
+        }
+
+        function autoSync() {
+            if (currentUser && document.getElementById('app-screen').style.display !== 'none') {
+                syncData();
+            }
+        }
+
+        function parseSmartInputText(text) {
+            let title = text;
+            let date = new Date();
+            let priority = "متوسطة";
+            let repeat = "بدون";
+            let category = "أخرى";
+
+            if (text.includes("عاجل") || text.includes("مهم") || text.includes("ضروري")) {
+                priority = "عالية";
+            } else if (text.includes("لاحقا") || text.includes("مش مهم")) {
+                priority = "منخفضة";
+            }
+
+            if (text.includes("بكره") || text.includes("غدا")) {
+                date.setDate(date.getDate() + 1);
+            } else if (text.includes("الأسبوع الجاي") || text.includes("الاسبوع القادم")) {
+                date.setDate(date.getDate() + 7);
+            } else {
+                const daysMatch = text.match(/بعد (\d+) أيا?م/);
+                if (daysMatch) {
+                    date.setDate(date.getDate() + parseInt(daysMatch[1]));
+                }
+            }
+
+            if (text.includes("يوميا") || text.includes("يومي")) repeat = "يومي";
+            else if (text.includes("أسبوعيا") || text.includes("اسبوعي")) repeat = "أسبوعي";
+            else if (text.includes("شهريا") || text.includes("شهري")) repeat = "شهري";
+
+            if (text.includes("مقابلة") || text.includes("توظيف") || text.includes("مرشح")) category = "التوظيف";
+            else if (text.includes("تدريب") || text.includes("كورس")) category = "التدريب والتطوير";
+            else if (text.includes("تقييم") || text.includes("أداء")) category = "تقييم الأداء";
+            else if (text.includes("نشرة") || text.includes("اجتماع")) category = "الاتصال الداخلي";
+            else if (text.includes("نشاط") || text.includes("حفلة") || text.includes("ارتباط")) category = "ارتباط الموظفين";
+            else if (text.includes("حضور") || text.includes("ملف") || text.includes("إجازات")) category = "عمليات HR";
+
+            const dateStr = date.toISOString().split('T')[0];
+            return { title, dueDate: dateStr, priority, repeat, category };
+        }
+
+        function parseSmartInput() {
+            const val = document.getElementById('smart-input').value.trim();
+            const preview = document.getElementById('smart-preview');
+            if (!val) {
+                preview.style.display = 'none';
+                return;
+            }
+            const parsed = parseSmartInputText(val);
+            preview.innerText = `هيتسجل: الموعد (${parsed.dueDate}) | أولوية: ${parsed.priority} | التصنيف: ${parsed.category} | التكرار: ${parsed.repeat}`;
+            preview.style.display = 'block';
+        }
+
+        function addSmartTask() {
+            const input = document.getElementById('smart-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const parsed = parseSmartInputText(text);
+            const assignTo = currentUser.role === 'ADMIN' ? document.getElementById('assign-to-select').value : 'SELF';
+
+            const newTask = {
+                id: 'task_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+                title: parsed.title,
+                category: parsed.category,
+                priority: parsed.priority,
+                dueDate: parsed.dueDate,
+                repeat: parsed.repeat,
+                completed: false,
+                completedAt: null,
+                assignedTo: assignTo === 'ALL' ? 'ALL' : currentUser.username,
+                createdBy: currentUser.username,
+                createdAt: new Date().toISOString()
+            };
+
+            db.tasks.push(newTask);
+            input.value = '';
+            document.getElementById('smart-preview').style.display = 'none';
+            triggerAutoSave();
+            renderAll();
+        }
+
+        function calculateScore(task) {
+            let pWeight = task.priority === 'عالية' ? 3 : task.priority === 'متوسطة' ? 2 : 1;
+            let urgency = 0;
+            const todayStr = new Date().toISOString().split('T')[0];
+            
+            if (task.dueDate < todayStr) urgency = 5;
+            else if (task.dueDate === todayStr) urgency = 4;
+            else {
+                const diffTime = new Date(task.dueDate) - new Date(todayStr);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                if (diffDays === 1) urgency = 2;
+                else if (diffDays <= 3) urgency = 1;
+            }
+            return pWeight + urgency;
+        }
+
+        function getVisibleTasks() {
+            return db.tasks.filter(t => {
+                if (currentUser.role === 'ADMIN') return true;
+                return t.assignedTo === currentUser.username || t.assignedTo === 'ALL';
+            });
+        }
+
+        function renderAll() {
+            renderTasks();
+            renderStatsAndFocus();
+            renderAnalytics();
+            if (currentUser.role === 'ADMIN') renderTeamTab();
+        }
+
+        function renderTasks() {
+            const container = document.getElementById('task-list');
+            container.innerHTML = '';
+
+            const search = document.getElementById('search-filter').value.toLowerCase();
+            const statusFilter = document.getElementById('status-filter').value;
+            const catFilter = document.getElementById('category-filter').value;
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            let tasks = getVisibleTasks();
+
+            tasks = tasks.filter(t => {
+                const matchSearch = t.title.toLowerCase().includes(search);
+                const matchCat = catFilter === 'ALL' || t.category === catFilter;
+                
+                let matchStatus = true;
+                if (statusFilter === 'TODAY') matchStatus = t.dueDate === todayStr && !t.completed;
+                else if (statusFilter === 'LATE') matchStatus = t.dueDate < todayStr && !t.completed;
+                else if (statusFilter === 'DONE') matchStatus = t.completed;
+                else if (statusFilter === 'WEEK') {
+                    const nextWeek = new Date(); nextWeek.setDate(nextWeek.getDate() + 7);
+                    const nwStr = nextWeek.toISOString().split('T')[0];
+                    matchStatus = t.dueDate >= todayStr && t.dueDate <= nwStr && !t.completed;
+                }
+
+                return matchSearch && matchCat && matchStatus;
+            });
+
+            tasks.sort((a, b) => calculateScore(b) - calculateScore(a));
+
+            if (tasks.length === 0) {
+                container.innerHTML = '<div style="text-align:center; color:var(--text-secondary); padding:20px;">لا توجد مهام مطابقة</div>';
+                return;
+            }
+
+            tasks.forEach(t => {
+                const item = document.createElement('div');
+                item.className = `task-item priority-${t.priority} ${t.completed ? 'completed' : ''}`;
+                
+                let createdBadge = t.createdBy !== currentUser.username ? `<span class="badge">من ${t.createdBy}</span>` : '';
+
+                item.innerHTML = `
+                    <div class="task-header">
+                        <input type="checkbox" ${t.completed ? 'checked' : ''} onchange="toggleTaskComplete('${t.id}')" style="width:18px; height:18px; cursor:pointer;">
+                        <span class="task-title" onclick="editTaskTitle('${t.id}')">${escapeHtml(t.title)}</span>
+                        <div class="task-actions">
+                            <button class="btn btn-secondary btn-sm" onclick="postponeTask('${t.id}')">+1 يوم</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteTask('${t.id}')">حذف</button>
+                        </div>
+                    </div>
+                    <div class="task-meta">
+                        <span class="badge">📅 ${t.dueDate}</span>
+                        <span class="badge">🎯 ${t.priority}</span>
+                        <span class="badge">🏷️ ${t.category}</span>
+                        ${t.repeat !== 'بدون' ? `<span class="badge">🔄 ${t.repeat}</span>` : ''}
+                        ${createdBadge}
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function renderStatsAndFocus() {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const tasks = getVisibleTasks();
+
+            const total = tasks.length;
+            const done = tasks.filter(t => t.completed).length;
+            const open = tasks.filter(t => !t.completed).length;
+            const todayCount = tasks.filter(t => t.dueDate === todayStr && !t.completed).length;
+            const lateCount = tasks.filter(t => t.dueDate < todayStr && !t.completed).length;
+
+            document.getElementById('stat-total').innerText = total;
+            document.getElementById('stat-done').innerText = done;
+            document.getElementById('stat-open').innerText = open;
+            document.getElementById('stat-today').innerText = todayCount;
+            document.getElementById('stat-late').innerText = lateCount;
+
+            const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+            document.getElementById('main-progress-bar').style.width = pct + '%';
+            document.getElementById('progress-text').innerText = pct + '%';
+
+            const overloadAlert = document.getElementById('overload-alert');
+            if (todayCount + lateCount > 5) {
+                overloadAlert.style.display = 'flex';
+            } else {
+                overloadAlert.style.display = 'none';
+            }
+
+            const focusList = document.getElementById('focus-list');
+            focusList.innerHTML = '';
+            const uncompleted = tasks.filter(t => !t.completed).sort((a,b) => calculateScore(b) - calculateScore(a)).slice(0, 3);
+            
+            if(uncompleted.length === 0) {
+                focusList.innerHTML = '<div style="font-size:0.85rem;">🎉 ممتااز! مفيش مهام معلقة ركّز عليها حالياً.</div>';
+            } else {
+                uncompleted.forEach(t => {
+                    const fCard = document.createElement('div');
+                    fCard.className = 'focus-card';
+                    fCard.innerHTML = `
+                        <span><b>${escapeHtml(t.title)}</b> (${t.dueDate})</span>
+                        <button class="btn btn-sm btn-secondary" onclick="toggleTaskComplete('${t.id}')">إنجاز</button>
+                    `;
+                    focusList.appendChild(fCard);
+                });
+            }
+        }
+
+        function toggleTaskComplete(id) {
+            const task = db.tasks.find(t => t.id === id);
+            if (!task) return;
+
+            task.completed = !task.completed;
+            task.completedAt = task.completed ? new Date().toISOString() : null;
+
+            if (task.completed && task.repeat !== 'بدون') {
+                const nextDate = new Date(task.dueDate);
+                if (task.repeat === 'يومي') nextDate.setDate(nextDate.getDate() + 1);
+                else if (task.repeat === 'أسبوعي') nextDate.setDate(nextDate.getDate() + 7);
+                else if (task.repeat === 'شهري') nextDate.setMonth(nextDate.getMonth() + 1);
+
+                const nextTask = {
+                    ...task,
+                    id: 'task_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+                    dueDate: nextDate.toISOString().split('T')[0],
+                    completed: false,
+                    completedAt: null,
+                    createdAt: new Date().toISOString()
+                };
+                db.tasks.push(nextTask);
+            }
+
+            triggerAutoSave();
+            renderAll();
+        }
+
+        function editTaskTitle(id) {
+            const task = db.tasks.find(t => t.id === id);
+            if (!task) return;
+            const newTitle = prompt("تعديل عنوان المهمة:", task.title);
+            if (newTitle && newTitle.trim() !== "") {
+                task.title = newTitle.trim();
+                triggerAutoSave();
+                renderAll();
+            }
+        }
+
+        function postponeTask(id) {
+            const task = db.tasks.find(t => t.id === id);
+            if (!task) return;
+            const current = new Date(task.dueDate);
+            current.setDate(current.getDate() + 1);
+            task.dueDate = current.toISOString().split('T')[0];
+            triggerAutoSave();
+            renderAll();
+        }
+
+        function postponeLowPriorityTasks() {
+            const todayStr = new Date().toISOString().split('T')[0];
+            let count = 0;
+            db.tasks.forEach(t => {
+                if (!t.completed && (t.dueDate <= todayStr) && t.priority === 'منخفضة') {
+                    const d = new Date(t.dueDate);
+                    d.setDate(d.getDate() + 1);
+                    t.dueDate = d.toISOString().split('T')[0];
+                    count++;
+                }
+            });
+            alert(`تم تأجيل ${count} مهام ذات أولوية منخفضة إلى الغد.`);
+            triggerAutoSave();
+            renderAll();
+        }
+
+        function deleteTask(id) {
+            if (confirm("هل أنت تأكد من حذف هذه المهمة؟")) {
+                db.tasks = db.tasks.filter(t => t.id !== id);
+                triggerAutoSave();
+                renderAll();
+            }
+        }
+
+        function applyTemplate(title, category) {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const newTask = {
+                id: 'task_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+                title: title,
+                category: category,
+                priority: 'متوسطة',
+                dueDate: todayStr,
+                repeat: 'بدون',
+                completed: false,
+                completedAt: null,
+                assignedTo: currentUser.username,
+                createdBy: currentUser.username,
+                createdAt: new Date().toISOString()
+            };
+            db.tasks.push(newTask);
+            triggerAutoSave();
+            renderAll();
+        }
+
+        function renderAnalytics() {
+            const tasks = getVisibleTasks();
+
+            const last7DaysContainer = document.getElementById('chart-completed-7days');
+            last7DaysContainer.innerHTML = '';
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                const dStr = d.toISOString().split('T')[0];
+                const count = tasks.filter(t => t.completed && t.completedAt && t.completedAt.startsWith(dStr)).length;
+                last7DaysContainer.appendChild(createBarRow(dStr.slice(5), count, 10));
+            }
+
+            const catContainer = document.getElementById('chart-category');
+            catContainer.innerHTML = '';
+            categories.forEach(cat => {
+                const count = tasks.filter(t => t.category === cat).length;
+                catContainer.appendChild(createBarRow(cat, count, tasks.length || 1));
+            });
+
+            const prioContainer = document.getElementById('chart-priority');
+            prioContainer.innerHTML = '';
+            ['عالية', 'متوسطة', 'منخفضة'].forEach(p => {
+                const count = tasks.filter(t => !t.completed && t.priority === p).length;
+                prioContainer.appendChild(createBarRow(p, count, tasks.length || 1));
+            });
+
+            if (currentUser.role === 'ADMIN') {
+                const teamChart = document.getElementById('chart-team-completion');
+                teamChart.innerHTML = '';
+                db.users.forEach(u => {
+                    const uTasks = db.tasks.filter(t => t.assignedTo === u.username || t.assignedTo === 'ALL');
+                    const uDone = uTasks.filter(t => t.completed).length;
+                    const pct = uTasks.length > 0 ? Math.round((uDone / uTasks.length) * 100) : 0;
+                    teamChart.appendChild(createBarRow(u.username, pct, 100, '%'));
+                });
+            }
+
+            const insights = document.getElementById('smart-insights');
+            let catCounts = {};
+            categories.forEach(c => catCounts[c] = tasks.filter(t => t.category === c).length);
+            let topCat = Object.keys(catCounts).reduce((a, b) => catCounts[a] > catCounts[b] ? a : b, categories[0]);
+
+            let lateMemberStr = "";
+            if (currentUser.role === 'ADMIN' && db.users.length > 0) {
+                let maxLate = -1;
+                let worstUser = "";
+                const todayStr = new Date().toISOString().split('T')[0];
+                db.users.forEach(u => {
+                    const lCount = db.tasks.filter(t => (t.assignedTo === u.username || t.assignedTo === 'ALL') && !t.completed && t.dueDate < todayStr).length;
+                    if (lCount > maxLate) { maxLate = lCount; worstUser = u.username; }
+                });
+                if (maxLate > 0) lateMemberStr = `<br>⚠️ العضو الأكثر تأخيراً في المهام: <b>${worstUser}</b> (${maxLate} مهام متأخرة).`;
+            }
+
+            insights.innerHTML = `
+                📌 أكثر تصنيف استهلاكاً للعمل: <b>${topCat}</b>.<br>
+                📈 نسبة الإنجاز الكلية للأنشطة والمهام: <b>${document.getElementById('progress-text').innerText}</b>.
+                ${lateMemberStr}
+            `;
+        }
+
+        function createBarRow(label, value, maxVal, unit = '') {
+            const row = document.createElement('div');
+            row.className = 'bar-row';
+            const pct = maxVal > 0 ? Math.min(100, Math.round((value / maxVal) * 100)) : 0;
+            row.innerHTML = `
+                <div class="bar-label" title="${label}">${label}</div>
+                <div class="bar-track"><div class="bar-fill" style="width: ${pct}%;"></div></div>
+                <div class="bar-val">${value}${unit}</div>
+            `;
+            return row;
+        }
+
+        function updateAssignOptions() {
+            const select = document.getElementById('assign-to-select');
+            select.innerHTML = '<option value="SELF">لنفسي فقط</option><option value="ALL">لكل أعضاء الفريق</option>';
+            db.users.forEach(u => {
+                if (u.username !== currentUser.username) {
+                    const opt = document.createElement('option');
+                    opt.value = u.username;
+                    opt.innerText = `عضو: ${u.username}`;
+                    select.appendChild(opt);
+                }
+            });
+        }
+
+        function renderTeamTab() {
+            updateAssignOptions();
+            const container = document.getElementById('team-list');
+            container.innerHTML = '';
+
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            db.users.forEach(u => {
+                const uTasks = db.tasks.filter(t => t.assignedTo === u.username || t.assignedTo === 'ALL');
+                const openCount = uTasks.filter(t => !t.completed).length;
+                const doneCount = uTasks.filter(t => t.completed).length;
+                const lateCount = uTasks.filter(t => !t.completed && t.dueDate < todayStr).length;
+                const pct = uTasks.length > 0 ? Math.round((doneCount / uTasks.length) * 100) : 0;
+
+                const isMainAdmin = u.username.toUpperCase() === 'OMAR';
+
+                const card = document.createElement('div');
+                card.style.cssText = 'background:var(--bg-tertiary); padding:10px; border-radius:8px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;';
+                card.innerHTML = `
+                    <div>
+                        <b>${escapeHtml(u.username)}</b> <span class="badge">${u.role}</span><br>
+                        <small>مفتوحة: ${openCount} | مكتملة: ${doneCount} | متأخرة: ${lateCount} | الإنجاز: ${pct}%</small>
+                    </div>
+                    <div style="display:flex; gap:6px;">
+                        <button class="btn btn-secondary btn-sm" onclick="previewMemberTasks('${u.username}')">👁️ عرض المهام</button>
+                        ${!isMainAdmin ? `<button class="btn btn-danger btn-sm" onclick="deleteUser('${u.username}')">حذف</button>` : ''}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function handleAddUser(e) {
+            e.preventDefault();
+            const uName = document.getElementById('new-user-name').value.trim();
+            const uPass = document.getElementById('new-user-pass').value.trim();
+            const uRole = document.getElementById('new-user-role').value;
+
+            if (db.users.some(u => u.username.toLowerCase() === uName.toLowerCase())) {
+                alert("اسم المستخدم موجود بالفعل!");
+                return;
+            }
+
+            db.users.push({ username: uName, password: uPass, role: uRole });
+            document.getElementById('new-user-name').value = '';
+            document.getElementById('new-user-pass').value = '';
+            triggerAutoSave();
+            renderAll();
+            alert("تمت إضافة العضو بنجاح.");
+        }
+
+        function deleteUser(username) {
+            if (username.toUpperCase() === 'OMAR') {
+                alert("لا يمكن حذف الأدمن الرئيسي!");
+                return;
+            }
+            if (confirm(`هل أنت تأكد من حذف العضو ${username}؟`)) {
+                db.users = db.users.filter(u => u.username !== username);
+                triggerAutoSave();
+                renderAll();
+            }
+        }
+
+        function previewMemberTasks(username) {
+            const previewBox = document.getElementById('member-tasks-preview');
+            const title = document.getElementById('member-preview-title');
+            const list = document.getElementById('member-tasks-list');
+            
+            title.innerText = `مهام العضو: ${username} (للقراءة فقط)`;
+            list.innerHTML = '';
+            previewBox.style.display = 'block';
+
+            const uTasks = db.tasks.filter(t => t.assignedTo === username || t.assignedTo === 'ALL');
+            if (uTasks.length === 0) {
+                list.innerHTML = '<p>لا توجد مهام لهذا العضو.</p>';
+                return;
+            }
+
+            uTasks.forEach(t => {
+                const item = document.createElement('div');
+                item.className = `task-item priority-${t.priority}`;
+                item.innerHTML = `
+                    <div class="task-header"><b>${escapeHtml(t.title)}</b> (${t.completed ? 'مكتملة' : 'معلقة'})</div>
+                    <div class="task-meta"><span class="badge">📅 ${t.dueDate}</span><span class="badge">🏷️ ${t.category}</span></div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function populateCategoryFilter() {
+            const select = document.getElementById('category-filter');
+            categories.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.innerText = c;
+                select.appendChild(opt);
+            });
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-tasks').style.display = 'none';
+            document.getElementById('tab-analytics').style.display = 'none';
+            document.getElementById('tab-team').style.display = 'none';
+
+            if (tabName === 'tasks') {
+                document.getElementById('tab-tasks').style.display = 'block';
+                event.target.classList.add('active');
+            } else if (tabName === 'analytics') {
+                document.getElementById('tab-analytics').style.display = 'block';
+                event.target.classList.add('active');
+            } else if (tabName === 'team') {
+                document.getElementById('tab-team').style.display = 'block';
+                event.target.classList.add('active');
+            }
+        }
+
+        function copyWeeklySummary() {
+            const tasks = getVisibleTasks();
+            let summary = `📊 **ملخص إنجازات الـ HR الأسبوعي**:\n\n`;
+            tasks.forEach(t => {
+                summary += `${t.completed ? '✅' : '⏳'} ${t.title} (${t.category}) - ${t.dueDate}\n`;
+            });
+            navigator.clipboard.writeText(summary).then(() => {
+                alert("تم نسخ ملخص الأسبوع للحافظة!");
+            });
+        }
+
+        function exportBackup() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db));
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.setAttribute("href", dataStr);
+            dlAnchorElem.setAttribute("download", `hr_backup_${new Date().toISOString().split('T')[0]}.json`);
+            dlAnchorElem.click();
+        }
+
+        function importBackup(e) {
+            const fileReader = new FileReader();
+            fileReader.onload = function (event) {
+                try {
+                    const importedDb = JSON.parse(event.target.result);
+                    if (importedDb.tasks && importedDb.users) {
+                        db = importedDb;
+                        triggerAutoSave();
+                        renderAll();
+                        alert("تم استعادة البيانات بنجاح!");
+                    }
+                } catch (ex) {
+                    alert("ملف غير صالح!");
+                }
+            };
+            fileReader.readAsText(e.target.files[0]);
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+    </script>
+</body>
+</html>

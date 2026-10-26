@@ -64,14 +64,12 @@
                         <i class="fas fa-tasks"></i> لوحة المهام
                     </button>
                     
-                    <!-- تبويب تحليلات KPIs (يظهر للأدمن ومدير الموارد البشرية) -->
                     <template x-if="currentUserObj.role === 'admin'">
                         <button @click="activeTab = 'kpis'" :class="activeTab === 'kpis' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" class="px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2">
                             <i class="fas fa-chart-line"></i> تحليلات KPIs
                         </button>
                     </template>
 
-                    <!-- تبويب إدارة المستخدمين -->
                     <template x-if="currentUserObj.role === 'admin'">
                         <button @click="activeTab = 'users'" :class="activeTab === 'users' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" class="px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2">
                             <i class="fas fa-users-gear"></i> إدارة المستخدمين (<span x-text="usersList.length"></span>)
@@ -102,7 +100,7 @@
             <!-- المحتوى -->
             <main class="flex-1 p-6 max-w-7xl mx-auto w-full space-y-6">
 
-                <!-- 1️⃣ قسم المهام (كروت مستقلة) -->
+                <!-- 1️⃣ قسم المهام -->
                 <div x-show="activeTab === 'tasks'" class="space-y-6">
                     <!-- الإحصائيات -->
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -136,27 +134,36 @@
                         </div>
                     </div>
 
-                    <!-- نموذج إضافة مهمة -->
-                    <template x-if="canAssignTasks()">
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                            <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2"><i class="fas fa-plus-circle text-emerald-600"></i> إضافة وإسناد مهمة جديدة</h2>
-                            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                <input type="text" x-model="newTask.title" placeholder="عنوان المهمة..." class="px-4 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500">
-                                
+                    <!-- نموذج إضافة مهمة (متاح لكافة المستخدمين: المشرفون يسندون للآخرين، والموظفون يضيفون لأنفسهم بناءً على البوزشن) -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                        <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
+                            <i class="fas fa-plus-circle text-emerald-600"></i> 
+                            <span x-text="canAssignTasks() ? 'إضافة وإسناد مهمة جديدة' : 'إضافة مهمة جديدة لنفسي'"></span>
+                        </h2>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <input type="text" x-model="newTask.title" placeholder="عنوان المهمة..." class="px-4 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500">
+                            
+                            <!-- لو لديه صلاحية إسناد، تظهر القائمة. لو موظف عادي، يظهر له اسمه ومسماه الوظيفي تلقائياً -->
+                            <template x-if="canAssignTasks()">
                                 <select x-model="newTask.assignee" class="px-4 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
                                     <option value="">اختر المسؤول عن المهمة...</option>
                                     <template x-for="user in getAllowedAssignees()" :key="user.username">
                                         <option :value="user.username" x-text="user.username + ' (' + user.position + ')'"></option>
                                     </template>
                                 </select>
+                            </template>
+                            <template x-if="!canAssignTasks()">
+                                <div class="px-4 py-2.5 border rounded-xl bg-gray-50 text-gray-700 text-sm flex items-center font-medium">
+                                    <span>المسؤول: <strong class="text-emerald-700" x-text="currentUserObj.username + ' (' + currentUserObj.position + ')'"></strong></span>
+                                </div>
+                            </template>
 
-                                <input type="date" x-model="newTask.date" class="px-4 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500">
-                                <button @click="addTask()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl transition shadow-md shadow-emerald-600/25 flex items-center justify-center gap-2">
-                                    <i class="fas fa-save"></i> حفظ المهمة
-                                </button>
-                            </div>
+                            <input type="date" x-model="newTask.date" class="px-4 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500">
+                            <button @click="addTask()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl transition shadow-md shadow-emerald-600/25 flex items-center justify-center gap-2">
+                                <i class="fas fa-save"></i> حفظ المهمة
+                            </button>
                         </div>
-                    </template>
+                    </div>
 
                     <!-- عرض المهام ككروت مستقلة -->
                     <div class="space-y-4">
@@ -283,7 +290,7 @@
                     </div>
                 </div>
 
-                <!-- 3️⃣ تبويب إدارة المستخدمين والصلاحيات والبوزشنات -->
+                <!-- 3️⃣ تبويب إدارة المستخدمين -->
                 <div x-show="activeTab === 'users' && currentUserObj.role === 'admin'" class="space-y-6">
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex justify-between items-center">
                         <div>
@@ -342,7 +349,6 @@
     </template>
 
     <script>
-        // الرابط الجديد المرتبط بقاعدة البيانات
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwuv73aHSXbyBF3NdswaDpJ_zS0FNgzRZzdrxyq3zD7yxJVDp1M4YthdN_U53Bsiiq2/exec";
 
         function hrApp() {
@@ -468,10 +474,13 @@
                         return;
                     }
 
+                    // إذا كان لديه صلاحية إسناد يأخذ المحدد، وإذا كان موظفاً عادياً تسند المهمة له تلقائياً
+                    let assignedTo = this.canAssignTasks() ? (this.newTask.assignee || this.currentUserObj.username) : this.currentUserObj.username;
+
                     let taskItem = {
                         id: Date.now().toString(),
                         title: this.newTask.title.trim(),
-                        assignee: this.newTask.assignee || this.currentUserObj.username,
+                        assignee: assignedTo,
                         date: this.newTask.date || new Date().toISOString().split('T')[0],
                         status: 'pending',
                         comments: '',

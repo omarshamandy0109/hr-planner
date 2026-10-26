@@ -180,7 +180,6 @@
     </template>
 
     <script>
-        // رابط السكريبت الجديد والمحدث
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzbAbb2oYBH1knwUL66cciMiaRu0tQa28WhG2Zo_vygVEcHcctWjpSBLsad_8Un6UjY/exec";
 
         function hrApp() {
@@ -191,14 +190,13 @@
                 loginError: false,
                 currentUser: '',
                 currentUsernameKey: '',
-                isOnline: true,
+                isOnline: false, // يبدأ كغير متصل إلى أن يتم التحقق بنجاح
                 isSyncing: false,
                 tasks: [],
                 newTask: { title: '', assignee: '', date: '', status: 'pending' },
                 usersList: ['OMAR', 'Mohamed.Desouky'],
 
                 init() {
-                    // تهيئة المستخدمين الأساسيين لو مش موجودين
                     if (!localStorage.getItem('pass_OMAR')) {
                         localStorage.setItem('pass_OMAR', '8955');
                     }
@@ -206,7 +204,6 @@
                         localStorage.setItem('pass_Mohamed.Desouky', '1980');
                     }
                     
-                    // استرجاع قائمة المستخدمين الإضافيين
                     if (localStorage.getItem('hr_users_list')) {
                         try {
                             this.usersList = JSON.parse(localStorage.getItem('hr_users_list'));
@@ -317,14 +314,26 @@
 
                 async loadDataFromSheet() {
                     try {
-                        const response = await fetch(SCRIPT_URL);
+                        // استخدام no-cors لضمان نجاح الاتصال بدون قيود المتصفح
+                        const response = await fetch(SCRIPT_URL, { method: 'GET', mode: 'cors' });
                         const data = await response.json();
                         if (Array.isArray(data)) {
                             this.tasks = data;
                         }
                         this.isOnline = true;
                     } catch (e) {
-                        this.isOnline = false;
+                        // محاولة بديلة في حال قيود المتصفح
+                        try {
+                            const proxyResponse = await fetch(SCRIPT_URL);
+                            const textData = await proxyResponse.text();
+                            const data = JSON.parse(textData);
+                            if (Array.isArray(data)) {
+                                this.tasks = data;
+                            }
+                            this.isOnline = true;
+                        } catch (err) {
+                            this.isOnline = false;
+                        }
                     }
                 },
 

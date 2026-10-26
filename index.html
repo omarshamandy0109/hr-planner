@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام مخطط HR الذكي</title>
+    <title>نظام مخطط HR الذكي المتكامل</title>
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -35,7 +35,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">كلمة المرور</label>
                         <input type="password" x-model="loginPass" @keyup.enter="handleLogin()" class="w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition bg-gray-50" placeholder="أدخل كلمة المرور">
                     </div>
-                    <button @click="handleLogin()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold transition shadow-lg shadow-emerald-600/30">دخول للنظام</button>
+                    <button @click="handleLogin()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold transition shadow-lg shadow-emerald-600/25">دخول للنظام</button>
                     <p x-show="loginError" class="text-red-500 text-sm text-center font-medium mt-2">اسم المستخدم أو كلمة المرور غير صحيحة!</p>
                 </div>
             </div>
@@ -58,12 +58,15 @@
                         </span>
                     </div>
                 </div>
-                <div class="flex items-center space-x-4 space-x-reverse">
+                <div class="flex items-center space-x-3 space-x-reverse">
                     <button @click="syncData()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1.5">
                         <i class="fas fa-sync-alt" :class="{'fa-spin': isSyncing}"></i> تحديث البيانات
                     </button>
                     <button @click="openChangePasswordModal()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1.5">
-                        <i class="fas fa-key"></i> تغيير كلمة المرور
+                        <i class="fas fa-key"></i> كلمة المرور
+                    </button>
+                    <button @click="openAddUserModal()" class="bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1.5">
+                        <i class="fas fa-user-plus"></i> إضافة مستخدم
                     </button>
                     <div class="h-6 w-px bg-gray-200"></div>
                     <span class="text-sm font-bold text-gray-700" x-text="currentUser"></span>
@@ -74,9 +77,9 @@
             </header>
 
             <!-- المحتوى الرئيسي -->
-            <main class="flex-1 p-6 max-w-7xl mx-auto w-full">
-                <!-- إحصائيات سريعة -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <main class="flex-1 p-6 max-w-7xl mx-auto w-full space-y-6">
+                <!-- إحصائيات سريعة وتحليل البيانات -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
                         <div>
                             <p class="text-sm text-gray-500 font-medium">إجمالي المهام</p>
@@ -98,10 +101,31 @@
                         </div>
                         <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-xl"><i class="fas fa-clock"></i></div>
                     </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium">نسبة الإنجاز العامة</p>
+                            <h3 class="text-2xl font-bold text-indigo-600 mt-1" x-text="completionRate() + '%'">0%</h3>
+                        </div>
+                        <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center text-xl"><i class="fas fa-chart-pie"></i></div>
+                    </div>
+                </div>
+
+                <!-- تحليل البيانات والرسوم البيانية المصغرة -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                    <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2"><i class="fas fa-chart-line text-indigo-600"></i> تحليل مؤشرات الأداء</h2>
+                    <div class="w-full bg-gray-100 rounded-full h-4 overflow-hidden flex">
+                        <div class="bg-emerald-500 h-full transition-all duration-500" :style="`width: ${completionRate()}%`" title="المنجزة"></div>
+                        <div class="bg-amber-400 h-full transition-all duration-500" :style="`width: ${100 - completionRate()}%`" title="قيد التنفيذ"></div>
+                    </div>
+                    <div class="flex justify-between text-xs text-gray-500 mt-2">
+                        <span>🟢 المنجز: <strong x-text="tasks.filter(t => t.status === 'completed').length"></strong> مهام</span>
+                        <span>🟡 قيد التنفيذ: <strong x-text="tasks.filter(t => t.status !== 'completed').length"></strong> مهام</span>
+                        <span>👥 عدد المشرفين المسجلين: <strong x-text="usersList.length"></strong></span>
+                    </div>
                 </div>
 
                 <!-- إضافة مهمة جديدة -->
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                     <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2"><i class="fas fa-plus-circle text-emerald-600"></i> إضافة مهمة جديدة</h2>
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <input type="text" x-model="newTask.title" placeholder="عنوان المهمة..." class="px-4 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500">
@@ -137,7 +161,7 @@
                                             <span :class="task.status === 'completed' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'" class="text-xs px-2.5 py-1 rounded-full font-medium" x-text="task.status === 'completed' ? 'منجزة' : 'قيد التنفيذ'"></span>
                                         </td>
                                         <td class="p-4 text-center space-x-2 space-x-reverse">
-                                            <button @click="toggleTaskStatus(index)" class="text-blue-600 hover:text-blue-800 text-sm font-medium"><i class="fas fa-check"></i> تغيير الحالة</button>
+                                            <button @click="toggleTaskStatus(index)" class="text-blue-600 hover:text-blue-800 text-sm font-medium"><i class="fas fa-check"></i> حالة</button>
                                             <button @click="deleteTask(index)" class="text-red-600 hover:text-red-800 text-sm font-medium"><i class="fas fa-trash"></i></button>
                                         </td>
                                     </tr>
@@ -170,15 +194,24 @@
                 isSyncing: false,
                 tasks: [],
                 newTask: { title: '', assignee: '', date: '', status: 'pending' },
+                usersList: ['OMAR', 'Mohamed.Desouky'],
 
                 init() {
-                    // استرجاع كلمات المرور المخزنة محلياً إن وجدت، أو استخدام الافتراضية
+                    // تهيئة المستخدمين الأساسيين لو مش موجودين
                     if (!localStorage.getItem('pass_OMAR')) {
                         localStorage.setItem('pass_OMAR', '8955');
                     }
                     if (!localStorage.getItem('pass_Mohamed.Desouky')) {
                         localStorage.setItem('pass_Mohamed.Desouky', '1980');
                     }
+                    
+                    // استرجاع قائمة المستخدمين الإضافيين لو تم إضافتهم قبل كده
+                    if (localStorage.getItem('hr_users_list')) {
+                        try {
+                            this.usersList = JSON.parse(localStorage.getItem('hr_users_list'));
+                        } catch(e) {}
+                    }
+
                     this.loadDataFromSheet();
                 },
 
@@ -186,7 +219,7 @@
                     let user = this.loginUser.trim();
                     let storedPass = localStorage.getItem('pass_' + user);
 
-                    if ((user === 'OMAR' && this.loginPass === storedPass) || (user === 'Mohamed.Desouky' && this.loginPass === storedPass)) {
+                    if (storedPass && this.loginPass === storedPass) {
                         this.isLoggedIn = true;
                         this.currentUser = user + ' (أدمن)';
                         this.currentUsernameKey = user;
@@ -201,6 +234,12 @@
                     this.isLoggedIn = false;
                     this.loginUser = '';
                     this.loginPass = '';
+                },
+
+                completionRate() {
+                    if (this.tasks.length === 0) return 0;
+                    let completed = this.tasks.filter(t => t.status === 'completed').length;
+                    return Math.round((completed / this.tasks.length) * 100);
                 },
 
                 async openChangePasswordModal() {
@@ -228,11 +267,50 @@
                         if (oldPass !== currentStoredPass) {
                             Swal.fire('خطأ', 'كلمة المرور الحالية غير صحيحة!', 'error');
                         } else if (!newPass || newPass.length < 4) {
-                            Swal.fire('تنبيه', 'يجب أن تكون كلمة المرور الجديدة 4 أحرف أو أرقام على الأقل', 'warning');
+                            Swal.fire('تنبيه', 'يجب ألا تقل كلمة المرور الجديدة عن 4 خانات', 'warning');
                         } else {
                             localStorage.setItem('pass_' + this.currentUsernameKey, newPass);
-                            Swal.fire('تم بنجاح', 'تم تغيير كلمة المرور الخاصة بك بنجاح', 'success');
+                            Swal.fire('تم بنجاح', 'تم تغيير كلمة المرور بنجاح', 'success');
                         }
+                    }
+                },
+
+                async openAddUserModal() {
+                    const { value: formValues } = await Swal.fire({
+                        title: 'إضافة مستخدم / أدمن جديد',
+                        html:
+                            '<input id="swal-new-user" type="text" class="swal2-input" placeholder="اسم المستخدم الجديد">' +
+                            '<input id="swal-new-user-pass" type="password" class="swal2-input" placeholder="كلمة المرور">',
+                        focusConfirm: false,
+                        showCancelButton: true,
+                        confirmButtonText: 'إضافة المستخدم',
+                        cancelButtonText: 'إلغاء',
+                        preConfirm: () => {
+                            return [
+                                document.getElementById('swal-new-user').value.trim(),
+                                document.getElementById('swal-new-user-pass').value
+                            ]
+                        }
+                    });
+
+                    if (formValues) {
+                        let [newUsername, newUserPass] = formValues;
+                        if (!newUsername || !newUserPass) {
+                            Swal.fire('تنبيه', 'يرجى ملء جميع الحقول المطلوبة', 'warning');
+                            return;
+                        }
+                        if (localStorage.getItem('pass_' + newUsername)) {
+                            Swal.fire('خطأ', 'اسم المستخدم موجود مسبقاً!', 'error');
+                            return;
+                        }
+
+                        localStorage.setItem('pass_' + newUsername, newUserPass);
+                        if (!this.usersList.includes(newUsername)) {
+                            this.usersList.push(newUsername);
+                            localStorage.setItem('hr_users_list', JSON.stringify(this.usersList));
+                        }
+
+                        Swal.fire('تم بنجاح', `تم إضافة المستخدم (${newUsername}) بنجاح`, 'success');
                     }
                 },
 

@@ -164,7 +164,7 @@
                         </div>
                     </div>
 
-                    <!-- شريط التحكم في عرض المهام للمشرفين/المديرين -->
+                    <!-- شريط التحكم في عرض المهام -->
                     <div class="flex flex-wrap justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
                         <div class="flex items-center gap-2">
                             <h2 class="text-base font-bold text-gray-800"><i class="fas fa-list-check text-emerald-600 ml-2"></i> لوحة متابعة المهام</h2>
@@ -177,7 +177,7 @@
                         </template>
                     </div>
 
-                    <!-- 1️⃣ قسم المهام قيد التنفيذ والجارية -->
+                    <!-- 1️⃣ قسم المهام قيد التنفيذ (مع تنبيهات المواعيد) -->
                     <div class="space-y-4">
                         <h3 class="text-sm font-bold text-amber-700 flex items-center gap-2">
                             <i class="fas fa-hourglass-half"></i> المهام الجارية وقيد التنفيذ (<span x-text="pendingTasks().length"></span>)
@@ -185,12 +185,32 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <template x-for="(task, index) in pendingTasks()" :key="task.id || index">
-                                <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-4 relative flex flex-col justify-between">
-                                    <div class="absolute top-4 left-4 flex gap-1">
-                                        <span class="bg-amber-100 text-amber-800 text-xs px-3 py-1 rounded-full font-bold">قيد التنفيذ ⏳</span>
+                                <div class="bg-white border rounded-2xl p-5 shadow-sm space-y-4 relative flex flex-col justify-between"
+                                     :class="{
+                                         'border-red-300 bg-red-50/20': getTaskUrgency(task.date).level === 'overdue' || getTaskUrgency(task.date).level === 'today',
+                                         'border-amber-300 bg-amber-50/20': getTaskUrgency(task.date).level === 'soon',
+                                         'border-gray-200': getTaskUrgency(task.date).level === 'normal'
+                                     }">
+                                     
+                                    <!-- شارة التنبيه الذكية للموعد -->
+                                    <div class="absolute top-4 left-4 flex gap-1 items-center">
+                                        <!-- شارة التنبيه الموعد -->
+                                        <span class="text-xs px-2.5 py-1 rounded-full font-bold shadow-2xs flex items-center gap-1"
+                                              :class="{
+                                                  'bg-red-100 text-red-700 animate-pulse': getTaskUrgency(task.date).level === 'overdue' || getTaskUrgency(task.date).level === 'today',
+                                                  'bg-amber-100 text-amber-800': getTaskUrgency(task.date).level === 'soon',
+                                                  'bg-slate-100 text-slate-700': getTaskUrgency(task.date).level === 'normal'
+                                              }">
+                                            <i class="fas" :class="{
+                                                'fa-exclamation-triangle': getTaskUrgency(task.date).level === 'overdue' || getTaskUrgency(task.date).level === 'today',
+                                                'fa-clock': getTaskUrgency(task.date).level === 'soon',
+                                                'fa-calendar-check': getTaskUrgency(task.date).level === 'normal'
+                                            }"></i>
+                                            <span x-text="getTaskUrgency(task.date).text"></span>
+                                        </span>
                                     </div>
 
-                                    <div class="space-y-2 pr-2">
+                                    <div class="space-y-2 pr-2 pt-2">
                                         <h4 class="font-bold text-gray-800 text-lg leading-snug" x-text="task.title"></h4>
                                         <div class="flex items-center gap-2 text-xs text-gray-500">
                                             <i class="fas fa-user-tie text-indigo-600"></i>
@@ -226,14 +246,12 @@
                                             <i class="fas fa-check"></i> إتمام المهمة
                                         </button>
 
-                                        <!-- زر تعديل المهمة (للأدمن أو المشرف أو صاحب المهمة) -->
                                         <template x-if="canAssignTasks()">
                                             <button @click="editTask(task)" class="bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-2 rounded-xl text-xs font-bold transition" title="تعديل المهمة">
                                                 <i class="fas fa-edit"></i>
                                             </button>
                                         </template>
 
-                                        <!-- زر الحذف حصرياً لـ OMAR -->
                                         <template x-if="currentUserObj.username === 'OMAR'">
                                             <button @click="deleteTask(task)" class="bg-red-50 text-red-600 hover:bg-red-100 px-3 py-2 rounded-xl text-xs font-bold transition" title="حذف المهمة">
                                                 <i class="fas fa-trash"></i>
@@ -432,7 +450,7 @@
                 loginError: false,
                 currentUserObj: { username: '', role: 'user', position: 'موظف' },
                 activeTab: 'tasks',
-                taskViewMode: 'all', // 'all' or 'mine'
+                taskViewMode: 'all',
                 isOnline: false,
                 isSyncing: false,
                 tasks: [],
@@ -505,11 +523,34 @@
                     return list;
                 },
 
+                // حساب مدى قرب موعد المهمة لإظهار التنبيه الذكي
+                getTaskUrgency(dateStr) {
+                    if (!dateStr) return { level: 'normal', text: 'محدد' };
+                    
+                    let today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    let tDate = new Date(dateStr);
+                    tDate.setHours(0, 0, 0, 0);
+                    
+                    let diffTime = tDate - today;
+                    let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                    if (diffDays < 0) {
+                        return { level: 'overdue', text: 'متأخرة ❌' };
+                    } else if (diffDays === 0) {
+                        return { level: 'today', text: 'ميعادها اليوم 🚨' };
+                    } else if (diffDays <= 3) {
+                        return { level: 'soon', text: `متبقي ${diffDays} أيام ⚠️` };
+                    } else {
+                        return { level: 'normal', text: `متبقي ${diffDays} يوم` };
+                    }
+                },
+
                 filteredTasks() {
                     let u = this.currentUserObj.username;
                     let baseList = [];
 
-                    // التحقق من وضع العرض للمشرفين والمديرين
                     if (this.canAssignTasks() && this.taskViewMode === 'mine') {
                         baseList = this.tasks.filter(t => t.assignee === u);
                     } else if (this.currentUserObj.role === 'admin' || u === 'Amr.Ragab' || u === 'Ahmed.Maher') {
@@ -602,7 +643,6 @@
                     }
                 },
 
-                // تعديل تفاصيل المهمة
                 async editTask(task) {
                     const { value: formValues } = await Swal.fire({
                         title: 'تعديل المهمة',
@@ -638,7 +678,7 @@
                                 method: 'POST',
                                 mode: 'no-cors',
                                 headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ action: 'add_task', task: task }) // يقوم بتحديث المهمة بالـ ID نفسه
+                                body: JSON.stringify({ action: 'add_task', task: task })
                             });
                         } catch (e) {
                             console.error(e);

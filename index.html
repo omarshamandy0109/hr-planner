@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام مخطط HR الذكي المتكامل</title>
+    <title>منظومة HR الإدارية الذكية</title>
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -13,29 +13,29 @@
         body { font-family: 'Cairo', sans-serif; }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800" x-data="hrApp()" x-init="init()">
+<body class="bg-slate-50 text-gray-800" x-data="hrApp()" x-init="init()">
 
     <!-- شاشة تسجيل الدخول -->
     <template x-if="!isLoggedIn">
-        <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 via-slate-800 to-emerald-900 p-4">
-            <div class="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-8 max-w-md w-full text-center border border-white/20">
+        <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-indigo-950 to-emerald-950 p-4">
+            <div class="bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl p-8 max-w-md w-full text-center border border-white/20">
                 <div class="mb-6">
                     <div class="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl shadow-inner border border-emerald-100">
                         <i class="fas fa-users-cog"></i>
                     </div>
                     <h1 class="text-2xl font-bold text-gray-800">مخطط HR الذكي</h1>
-                    <p class="text-sm text-gray-500 mt-1">نظام إدارة الموارد البشرية والمهام المتكامل</p>
+                    <p class="text-sm text-gray-500 mt-1">تسجيل الدخول للمنظومة الإدارية المتكاملة</p>
                 </div>
                 <div class="space-y-4 text-right">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">اسم المستخدم</label>
-                        <input type="text" x-model="loginUser" class="w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition bg-gray-50" placeholder="أدخل اسم المستخدم">
+                        <input type="text" x-model="loginUser" class="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition bg-gray-50" placeholder="أدخل اسم المستخدم">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">كلمة المرور</label>
-                        <input type="password" x-model="loginPass" @keyup.enter="handleLogin()" class="w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition bg-gray-50" placeholder="أدخل كلمة المرور">
+                        <input type="password" x-model="loginPass" @keyup.enter="handleLogin()" class="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition bg-gray-50" placeholder="أدخل كلمة المرور">
                     </div>
-                    <button @click="handleLogin()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold transition shadow-lg shadow-emerald-600/25">دخول للنظام</button>
+                    <button @click="handleLogin()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold transition shadow-lg shadow-emerald-600/25">تسجيل الدخول</button>
                     <p x-show="loginError" class="text-red-500 text-sm text-center font-medium mt-2">اسم المستخدم أو كلمة المرور غير صحيحة!</p>
                 </div>
             </div>
@@ -46,141 +46,219 @@
     <template x-if="isLoggedIn">
         <div class="min-h-screen flex flex-col">
             <!-- الهيدر -->
-            <header class="bg-white shadow-sm border-b px-6 py-4 flex justify-between items-center sticky top-0 z-50">
+            <header class="bg-white shadow-sm border-b px-6 py-4 flex flex-wrap justify-between items-center gap-4 sticky top-0 z-50">
                 <div class="flex items-center space-x-4 space-x-reverse">
                     <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-lg border border-emerald-100">
-                        <i class="fas fa-user-tie"></i>
+                        <i class="fas fa-user-shield"></i>
                     </div>
                     <div>
-                        <h1 class="text-lg font-bold text-gray-800">مخطط الـ HR الذكي</h1>
-                        <span :class="isOnline ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'" class="text-xs px-2.5 py-0.5 rounded-full font-medium inline-block mt-0.5">
-                            <span x-text="isOnline ? '🟢 متصل بقاعدة البيانات' : '🔴 غير متصل'"></span>
+                        <h1 class="text-lg font-bold text-gray-800">نظام HR الإداري</h1>
+                        <span :class="isOnline ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'" class="text-xs px-2.5 py-0.5 rounded-full font-medium inline-block mt-0.5">
+                            <span x-text="isOnline ? '🟢 متصل بقاعدة البيانات' : '🟡 جاري المزامنة...'"></span>
                         </span>
                     </div>
                 </div>
-                <div class="flex items-center space-x-3 space-x-reverse">
-                    <button @click="syncData()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1.5">
-                        <i class="fas fa-sync-alt" :class="{'fa-spin': isSyncing}"></i> تحديث البيانات
+
+                <div class="flex items-center flex-wrap gap-2">
+                    <button @click="activeTab = 'tasks'" :class="activeTab === 'tasks' ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" class="px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2">
+                        <i class="fas fa-tasks"></i> لوحة المهام
                     </button>
-                    <button @click="openChangePasswordModal()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1.5">
+                    
+                    <!-- زر إدارة المستخدمين يظهر حصرياً للأدمن -->
+                    <template x-if="currentUserObj.role === 'admin'">
+                        <button @click="activeTab = 'users'" :class="activeTab === 'users' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" class="px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2">
+                            <i class="fas fa-users-gear"></i> إدارة المستخدمين (<span x-text="usersList.length"></span>)
+                        </button>
+                    </template>
+
+                    <button @click="syncData(true)" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-xl text-sm font-medium transition flex items-center gap-1.5">
+                        <i class="fas fa-sync-alt" :class="{'fa-spin': isSyncing}"></i> تحديث
+                    </button>
+
+                    <button @click="openChangePasswordModal()" class="bg-amber-50 hover:bg-amber-100 text-amber-700 px-3 py-2 rounded-xl text-sm font-medium transition flex items-center gap-1.5">
                         <i class="fas fa-key"></i> كلمة المرور
                     </button>
-                    <button @click="openAddUserModal()" class="bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1.5">
-                        <i class="fas fa-user-plus"></i> إضافة مستخدم
-                    </button>
+
                     <div class="h-6 w-px bg-gray-200"></div>
-                    <span class="text-sm font-bold text-gray-700" x-text="currentUser"></span>
-                    <button @click="logout()" class="text-red-600 hover:text-red-800 text-sm font-medium flex items-center gap-1">
-                        <i class="fas fa-sign-out-alt"></i> خروج
+
+                    <div class="text-right px-2">
+                        <span class="text-xs text-gray-400 block">المستخدم الحالي</span>
+                        <span class="text-sm font-bold text-gray-800" x-text="currentUserObj.username + (currentUserObj.role === 'admin' ? ' (أدمن)' : ' (موظف)')"></span>
+                    </div>
+
+                    <button @click="logout()" class="text-red-600 hover:bg-red-50 p-2 rounded-xl text-sm font-medium transition" title="خروج">
+                        <i class="fas fa-sign-out-alt text-lg"></i>
                     </button>
                 </div>
             </header>
 
-            <!-- المحتوى الرئيسي -->
+            <!-- المحتوى -->
             <main class="flex-1 p-6 max-w-7xl mx-auto w-full space-y-6">
-                <!-- إحصائيات سريعة وتحليل البيانات -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
-                        <div>
-                            <p class="text-sm text-gray-500 font-medium">إجمالي المهام</p>
-                            <h3 class="text-2xl font-bold text-gray-800 mt-1" x-text="tasks.length">0</h3>
+
+                <!-- 1️⃣ قسم المهام -->
+                <div x-show="activeTab === 'tasks'" class="space-y-6">
+                    <!-- الإحصائيات -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500 font-medium">المهام المعروضة</p>
+                                <h3 class="text-3xl font-bold text-gray-800 mt-1" x-text="filteredTasks().length">0</h3>
+                            </div>
+                            <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-xl"><i class="fas fa-clipboard-list"></i></div>
                         </div>
-                        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl"><i class="fas fa-tasks"></i></div>
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500 font-medium">المنجزة</p>
+                                <h3 class="text-3xl font-bold text-emerald-600 mt-1" x-text="filteredTasks().filter(t => t.status === 'completed').length">0</h3>
+                            </div>
+                            <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-xl"><i class="fas fa-check-circle"></i></div>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500 font-medium">قيد التنفيذ</p>
+                                <h3 class="text-3xl font-bold text-amber-600 mt-1" x-text="filteredTasks().filter(t => t.status !== 'completed').length">0</h3>
+                            </div>
+                            <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center text-xl"><i class="fas fa-clock"></i></div>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500 font-medium">نسبة الإنجاز</p>
+                                <h3 class="text-3xl font-bold text-indigo-600 mt-1" x-text="completionRate() + '%'">0%</h3>
+                            </div>
+                            <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-xl"><i class="fas fa-chart-pie"></i></div>
+                        </div>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
-                        <div>
-                            <p class="text-sm text-gray-500 font-medium">المهام المنجزة</p>
-                            <h3 class="text-2xl font-bold text-emerald-600 mt-1" x-text="tasks.filter(t => t.status === 'completed').length">0</h3>
+
+                    <!-- شريط التقدم -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                        <div class="flex justify-between items-center mb-2">
+                            <h2 class="text-sm font-bold text-gray-700"><i class="fas fa-chart-line text-indigo-600 ml-1"></i> مؤشر الأداء العام للمهام</h2>
+                            <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full" x-text="completionRate() + '% مكتمل'"></span>
                         </div>
-                        <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl"><i class="fas fa-check-circle"></i></div>
+                        <div class="w-full bg-gray-100 rounded-full h-3 overflow-hidden flex">
+                            <div class="bg-emerald-500 h-full transition-all duration-500" :style="`width: ${completionRate()}%`"></div>
+                        </div>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
-                        <div>
-                            <p class="text-sm text-gray-500 font-medium">قيد التنفيذ</p>
-                            <h3 class="text-2xl font-bold text-amber-600 mt-1" x-text="tasks.filter(t => t.status !== 'completed').length">0</h3>
+
+                    <!-- نموذج إضافة مهمة -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                        <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2"><i class="fas fa-plus-circle text-emerald-600"></i> إضافة وإسناد مهمة جديدة</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <input type="text" x-model="newTask.title" placeholder="عنوان المهمة..." class="px-4 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500">
+                            
+                            <select x-model="newTask.assignee" class="px-4 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+                                <option value="">اختر المسؤول عن المهمة...</option>
+                                <template x-for="user in usersList" :key="user.username">
+                                    <option :value="user.username" x-text="user.username + (user.role === 'admin' ? ' (أدمن)' : ' (موظف)')"></option>
+                                </template>
+                            </select>
+
+                            <input type="date" x-model="newTask.date" class="px-4 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500">
+                            <button @click="addTask()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl transition shadow-md shadow-emerald-600/25 flex items-center justify-center gap-2">
+                                <i class="fas fa-save"></i> حفظ المهمة
+                            </button>
                         </div>
-                        <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-xl"><i class="fas fa-clock"></i></div>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
-                        <div>
-                            <p class="text-sm text-gray-500 font-medium">نسبة الإنجاز العامة</p>
-                            <h3 class="text-2xl font-bold text-indigo-600 mt-1" x-text="completionRate() + '%'">0%</h3>
+
+                    <!-- جدول المهام -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="p-6 border-b flex justify-between items-center">
+                            <h2 class="text-base font-bold text-gray-800">قائمة ومتابعة المهام</h2>
+                            <span class="text-xs text-gray-500" x-text="currentUserObj.role === 'admin' ? 'عرض كافة مهام النظام' : 'عرض مهامك الخاصة فقط'"></span>
                         </div>
-                        <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center text-xl"><i class="fas fa-chart-pie"></i></div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-right border-collapse">
+                                <thead>
+                                    <tr class="bg-gray-50 text-gray-600 text-sm border-b">
+                                        <th class="p-4">المهمة</th>
+                                        <th class="p-4">المسؤول</th>
+                                        <th class="p-4">التاريخ</th>
+                                        <th class="p-4">الحالة</th>
+                                        <th class="p-4 text-center">الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    <template x-for="(task, index) in filteredTasks()" :key="task.id || index">
+                                        <tr class="hover:bg-gray-50/50 transition">
+                                            <td class="p-4 font-medium text-gray-800" x-text="task.title"></td>
+                                            <td class="p-4 text-gray-600">
+                                                <span class="bg-gray-100 px-3 py-1 rounded-lg text-xs font-bold text-gray-700" x-text="task.assignee || 'غير محدد'"></span>
+                                            </td>
+                                            <td class="p-4 text-gray-600 text-sm" x-text="task.date"></td>
+                                            <td class="p-4">
+                                                <span :class="task.status === 'completed' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'" class="text-xs px-3 py-1 rounded-full font-bold inline-block" x-text="task.status === 'completed' ? 'منجزة ✅' : 'قيد التنفيذ ⏳'"></span>
+                                            </td>
+                                            <td class="p-4 text-center space-x-2 space-x-reverse">
+                                                <button @click="toggleTaskStatus(task)" class="bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1.5 rounded-lg text-xs font-bold transition">
+                                                    تغيير الحالة
+                                                </button>
+                                                <template x-if="currentUserObj.role === 'admin' || task.assignee === currentUserObj.username">
+                                                    <button @click="deleteTask(task)" class="bg-red-50 text-red-600 hover:bg-red-100 px-2.5 py-1.5 rounded-lg text-xs font-bold transition">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </template>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                    <template x-if="filteredTasks().length === 0">
+                                        <tr>
+                                            <td colspan="5" class="p-8 text-center text-gray-400 font-medium">لا توجد مهام مسجلة حالياً.</td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
-                <!-- تحليل البيانات والرسوم البيانية المصغرة -->
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                    <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2"><i class="fas fa-chart-line text-indigo-600"></i> تحليل مؤشرات الأداء</h2>
-                    <div class="w-full bg-gray-100 rounded-full h-4 overflow-hidden flex">
-                        <div class="bg-emerald-500 h-full transition-all duration-500" :style="`width: ${completionRate()}%`" title="المنجزة"></div>
-                        <div class="bg-amber-400 h-full transition-all duration-500" :style="`width: ${100 - completionRate()}%`" title="قيد التنفيذ"></div>
+                <!-- 2️⃣ تبويب إدارة المستخدمين (للأدمن فقط) -->
+                <div x-show="activeTab === 'users' && currentUserObj.role === 'admin'" class="space-y-6">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-lg font-bold text-gray-800">إدارة المستخدمين والصلاحيات</h2>
+                            <p class="text-xs text-gray-500">إضافة حسابات جديدة للموظفين وتعديل بياناتهم أو كلمات المرور</p>
+                        </div>
+                        <button @click="openAddUserModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2.5 rounded-xl transition shadow-md shadow-indigo-600/25 flex items-center gap-2">
+                            <i class="fas fa-user-plus"></i> إضافة مستخدم جديد
+                        </button>
                     </div>
-                    <div class="flex justify-between text-xs text-gray-500 mt-2">
-                        <span>🟢 المنجز: <strong x-text="tasks.filter(t => t.status === 'completed').length"></strong> مهام</span>
-                        <span>🟡 قيد التنفيذ: <strong x-text="tasks.filter(t => t.status !== 'completed').length"></strong> مهام</span>
-                        <span>👥 عدد المشرفين المسجلين: <strong x-text="usersList.length"></strong></span>
-                    </div>
-                </div>
 
-                <!-- إضافة مهمة جديدة -->
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                    <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2"><i class="fas fa-plus-circle text-emerald-600"></i> إضافة مهمة جديدة</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <input type="text" x-model="newTask.title" placeholder="عنوان المهمة..." class="px-4 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500">
-                        <input type="text" x-model="newTask.assignee" placeholder="المسؤول..." class="px-4 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500">
-                        <input type="date" x-model="newTask.date" class="px-4 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500">
-                        <button @click="addTask()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-xl transition shadow-md shadow-emerald-600/25">حفظ المهمة</button>
-                    </div>
-                </div>
-
-                <!-- جدول المهام -->
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="p-6 border-b flex justify-between items-center">
-                        <h2 class="text-base font-bold text-gray-800">قائمة المهام</h2>
-                    </div>
-                    <div class="overflow-x-auto">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                         <table class="w-full text-right border-collapse">
                             <thead>
                                 <tr class="bg-gray-50 text-gray-600 text-sm border-b">
-                                    <th class="p-4">المهمة</th>
-                                    <th class="p-4">المسؤول</th>
-                                    <th class="p-4">التاريخ</th>
-                                    <th class="p-4">الحالة</th>
+                                    <th class="p-4">اسم المستخدم</th>
+                                    <th class="p-4">كلمة المرور</th>
+                                    <th class="p-4">الصلاحية</th>
                                     <th class="p-4 text-center">الإجراءات</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
-                                <template x-for="(task, index) in tasks" :key="index">
+                                <template x-for="(user, uIdx) in usersList" :key="user.username">
                                     <tr class="hover:bg-gray-50/50 transition">
-                                        <td class="p-4 font-medium text-gray-800" x-text="task.title"></td>
-                                        <td class="p-4 text-gray-600" x-text="task.assignee"></td>
-                                        <td class="p-4 text-gray-600" x-text="task.date"></td>
+                                        <td class="p-4 font-bold text-gray-800" x-text="user.username"></td>
+                                        <td class="p-4 text-gray-500 font-mono text-sm" x-text="user.password"></td>
                                         <td class="p-4">
-                                            <span :class="task.status === 'completed' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'" class="text-xs px-2.5 py-1 rounded-full font-medium" x-text="task.status === 'completed' ? 'منجزة' : 'قيد التنفيذ'"></span>
+                                            <span :class="user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'" class="text-xs px-3 py-1 rounded-full font-bold" x-text="user.role === 'admin' ? 'أدمن / مدير' : 'موظف'"></span>
                                         </td>
                                         <td class="p-4 text-center space-x-2 space-x-reverse">
-                                            <button @click="toggleTaskStatus(index)" class="text-blue-600 hover:text-blue-800 text-sm font-medium"><i class="fas fa-check"></i> حالة</button>
-                                            <button @click="deleteTask(index)" class="text-red-600 hover:text-red-800 text-sm font-medium"><i class="fas fa-trash"></i></button>
+                                            <button @click="editUserPassword(user)" class="bg-amber-50 text-amber-600 hover:bg-amber-100 px-3 py-1.5 rounded-lg text-xs font-bold transition">تعديل الباسورد</button>
+                                            <button @click="deleteUser(user)" class="bg-red-50 text-red-600 hover:bg-red-100 px-2.5 py-1.5 rounded-lg text-xs font-bold transition" x-show="user.username !== currentUserObj.username">حذف</button>
                                         </td>
-                                    </tr>
-                                </template>
-                                <template x-if="tasks.length === 0">
-                                    <tr>
-                                        <td colspan="5" class="p-8 text-center text-gray-400">لا توجد مهام مضافة حالياً. ابدأ بإضافة مهمة جديدة!</td>
                                     </tr>
                                 </template>
                             </tbody>
                         </table>
                     </div>
                 </div>
+
             </main>
         </div>
     </template>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzbAbb2oYBH1knwUL66cciMiaRu0tQa28WhG2Zo_vygVEcHcctWjpSBLsad_8Un6UjY/exec";
+        // الرابط الجديد والصحيح المرتبط بالداتا بيز
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzFxC5EZPojexFH5NJMZKrkoFxyIyrHV_ahkyxVja1UBeYzk0izlqnxkCi91N2-hc3Y/exec";
 
         function hrApp() {
             return {
@@ -188,41 +266,44 @@
                 loginUser: '',
                 loginPass: '',
                 loginError: false,
-                currentUser: '',
-                currentUsernameKey: '',
-                isOnline: false, // يبدأ كغير متصل إلى أن يتم التحقق بنجاح
+                currentUserObj: { username: '', role: 'user' },
+                activeTab: 'tasks',
+                isOnline: false,
                 isSyncing: false,
                 tasks: [],
+                usersList: [],
                 newTask: { title: '', assignee: '', date: '', status: 'pending' },
-                usersList: ['OMAR', 'Mohamed.Desouky'],
 
                 init() {
-                    if (!localStorage.getItem('pass_OMAR')) {
-                        localStorage.setItem('pass_OMAR', '8955');
-                    }
-                    if (!localStorage.getItem('pass_Mohamed.Desouky')) {
-                        localStorage.setItem('pass_Mohamed.Desouky', '1980');
-                    }
-                    
-                    if (localStorage.getItem('hr_users_list')) {
-                        try {
-                            this.usersList = JSON.parse(localStorage.getItem('hr_users_list'));
-                        } catch(e) {}
-                    }
+                    this.loadData();
+                },
 
-                    this.loadDataFromSheet();
+                async loadData() {
+                    try {
+                        const res = await fetch(SCRIPT_URL);
+                        const data = await res.json();
+                        
+                        if (data.users) this.usersList = data.users;
+                        if (data.tasks) this.tasks = data.tasks;
+                        
+                        this.isOnline = true;
+                    } catch (e) {
+                        console.error("Load error:", e);
+                        this.isOnline = false;
+                    }
                 },
 
                 handleLogin() {
-                    let user = this.loginUser.trim();
-                    let storedPass = localStorage.getItem('pass_' + user);
+                    let u = this.loginUser.trim();
+                    let p = this.loginPass.trim();
 
-                    if (storedPass && this.loginPass === storedPass) {
+                    let found = this.usersList.find(x => x.username.toLowerCase() === u.toLowerCase() && String(x.password).trim() === p);
+
+                    if (found) {
                         this.isLoggedIn = true;
-                        this.currentUser = user + ' (أدمن)';
-                        this.currentUsernameKey = user;
+                        this.currentUserObj = found;
                         this.loginError = false;
-                        this.syncData();
+                        Swal.fire({ icon: 'success', title: 'أهلاً بك ' + found.username, timer: 1200, showConfirmButton: false });
                     } else {
                         this.loginError = true;
                     }
@@ -232,147 +313,167 @@
                     this.isLoggedIn = false;
                     this.loginUser = '';
                     this.loginPass = '';
+                    this.currentUserObj = { username: '', role: 'user' };
+                },
+
+                filteredTasks() {
+                    // الأدمن يرى كل المهام، والموظف يرى مهامه الخاصة فقط
+                    if (this.currentUserObj.role === 'admin') {
+                        return this.tasks;
+                    } else {
+                        return this.tasks.filter(t => t.assignee === this.currentUserObj.username);
+                    }
                 },
 
                 completionRate() {
-                    if (this.tasks.length === 0) return 0;
-                    let completed = this.tasks.filter(t => t.status === 'completed').length;
-                    return Math.round((completed / this.tasks.length) * 100);
+                    let list = this.filteredTasks();
+                    if (list.length === 0) return 0;
+                    let completed = list.filter(t => t.status === 'completed').length;
+                    return Math.round((completed / list.length) * 100);
                 },
 
-                async openChangePasswordModal() {
-                    const { value: formValues } = await Swal.fire({
-                        title: 'تغيير كلمة المرور',
-                        html:
-                            '<input id="swal-old-pass" type="password" class="swal2-input" placeholder="كلمة المرور الحالية">' +
-                            '<input id="swal-new-pass" type="password" class="swal2-input" placeholder="كلمة المرور الجديدة">',
-                        focusConfirm: false,
-                        showCancelButton: true,
-                        confirmButtonText: 'تغيير',
-                        cancelButtonText: 'إلغاء',
-                        preConfirm: () => {
-                            return [
-                                document.getElementById('swal-old-pass').value,
-                                document.getElementById('swal-new-pass').value
-                            ]
-                        }
-                    });
-
-                    if (formValues) {
-                        let [oldPass, newPass] = formValues;
-                        let currentStoredPass = localStorage.getItem('pass_' + this.currentUsernameKey);
-
-                        if (oldPass !== currentStoredPass) {
-                            Swal.fire('خطأ', 'كلمة المرور الحالية غير صحيحة!', 'error');
-                        } else if (!newPass || newPass.length < 4) {
-                            Swal.fire('تنبيه', 'يجب ألا تقل كلمة المرور الجديدة عن 4 خانات', 'warning');
-                        } else {
-                            localStorage.setItem('pass_' + this.currentUsernameKey, newPass);
-                            Swal.fire('تم بنجاح', 'تم تغيير كلمة المرور بنجاح', 'success');
-                        }
+                async syncData(showNotice = false) {
+                    this.isSyncing = true;
+                    await this.loadData();
+                    this.isSyncing = false;
+                    if(showNotice) {
+                        Swal.fire({ icon: 'success', title: 'تمت المزامنة بنجاح', timer: 1200, showConfirmButton: false });
                     }
                 },
 
-                async openAddUserModal() {
-                    const { value: formValues } = await Swal.fire({
-                        title: 'إضافة مستخدم / أدمن جديد',
-                        html:
-                            '<input id="swal-new-user" type="text" class="swal2-input" placeholder="اسم المستخدم الجديد">' +
-                            '<input id="swal-new-user-pass" type="password" class="swal2-input" placeholder="كلمة المرور">',
-                        focusConfirm: false,
-                        showCancelButton: true,
-                        confirmButtonText: 'إضافة المستخدم',
-                        cancelButtonText: 'إلغاء',
-                        preConfirm: () => {
-                            return [
-                                document.getElementById('swal-new-user').value.trim(),
-                                document.getElementById('swal-new-user-pass').value
-                            ]
-                        }
-                    });
-
-                    if (formValues) {
-                        let [newUsername, newUserPass] = formValues;
-                        if (!newUsername || !newUserPass) {
-                            Swal.fire('تنبيه', 'يرجى ملء جميع الحقول المطلوبة', 'warning');
-                            return;
-                        }
-                        if (localStorage.getItem('pass_' + newUsername)) {
-                            Swal.fire('خطأ', 'اسم المستخدم موجود مسبقاً!', 'error');
-                            return;
-                        }
-
-                        localStorage.setItem('pass_' + newUsername, newUserPass);
-                        if (!this.usersList.includes(newUsername)) {
-                            this.usersList.push(newUsername);
-                            localStorage.setItem('hr_users_list', JSON.stringify(this.usersList));
-                        }
-
-                        Swal.fire('تم بنجاح', `تم إضافة المستخدم (${newUsername}) بنجاح`, 'success');
-                    }
-                },
-
-                async loadDataFromSheet() {
-                    try {
-                        // استخدام no-cors لضمان نجاح الاتصال بدون قيود المتصفح
-                        const response = await fetch(SCRIPT_URL, { method: 'GET', mode: 'cors' });
-                        const data = await response.json();
-                        if (Array.isArray(data)) {
-                            this.tasks = data;
-                        }
-                        this.isOnline = true;
-                    } catch (e) {
-                        // محاولة بديلة في حال قيود المتصفح
-                        try {
-                            const proxyResponse = await fetch(SCRIPT_URL);
-                            const textData = await proxyResponse.text();
-                            const data = JSON.parse(textData);
-                            if (Array.isArray(data)) {
-                                this.tasks = data;
-                            }
-                            this.isOnline = true;
-                        } catch (err) {
-                            this.isOnline = false;
-                        }
-                    }
-                },
-
-                async addTask() {
-                    if (!this.newTask.title.trim()) {
-                        Swal.fire('تنبيه', 'يرجى إدخال عنوان المهمة', 'warning');
-                        return;
-                    }
-                    this.tasks.push({ ...this.newTask });
-                    const taskToSave = { ...this.newTask };
-                    this.newTask = { title: '', assignee: '', date: '', status: 'pending' };
-                    
-                    Swal.fire({ icon: 'success', title: 'تم الحفظ بنجاح', timer: 1500, showConfirmButton: false });
-                    
+                async saveToDatabase() {
+                    this.isSyncing = true;
                     try {
                         await fetch(SCRIPT_URL, {
                             method: 'POST',
                             mode: 'no-cors',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(taskToSave)
+                            body: JSON.stringify({
+                                action: 'save_all',
+                                tasks: this.tasks,
+                                users: this.usersList
+                            })
                         });
+                        this.isOnline = true;
                     } catch (e) {
-                        console.error("Error saving to sheet", e);
+                        console.error(e);
+                    } finally {
+                        this.isSyncing = false;
                     }
                 },
 
-                toggleTaskStatus(index) {
-                    this.tasks[index].status = this.tasks[index].status === 'completed' ? 'pending' : 'completed';
+                async addTask() {
+                    if (!this.newTask.title.trim()) {
+                        Swal.fire('تنبيه', 'يرجى كتابة عنوان المهمة', 'warning');
+                        return;
+                    }
+
+                    let taskItem = {
+                        id: Date.now().toString(),
+                        title: this.newTask.title.trim(),
+                        assignee: this.newTask.assignee || this.currentUserObj.username,
+                        date: this.newTask.date || new Date().toISOString().split('T')[0],
+                        status: 'pending'
+                    };
+
+                    this.tasks.push(taskItem);
+                    this.newTask = { title: '', assignee: '', date: '', status: 'pending' };
+                    
+                    await this.saveToDatabase();
+                    Swal.fire({ icon: 'success', title: 'تمت إضافة المهمة وإسنادها بنجاح', timer: 1500, showConfirmButton: false });
                 },
 
-                deleteTask(index) {
-                    this.tasks.splice(index, 1);
+                async toggleTaskStatus(task) {
+                    task.status = task.status === 'completed' ? 'pending' : 'completed';
+                    await this.saveToDatabase();
                 },
 
-                async syncData() {
-                    this.isSyncing = true;
-                    await this.loadDataFromSheet();
-                    this.isSyncing = false;
-                    Swal.fire({ icon: 'success', title: 'تم تحديث البيانات بنجاح', timer: 1200, showConfirmButton: false });
+                async deleteTask(task) {
+                    this.tasks = this.tasks.filter(t => t.id !== task.id);
+                    await this.saveToDatabase();
+                    Swal.fire({ icon: 'success', title: 'تم حذف المهمة', timer: 1200, showConfirmButton: false });
+                },
+
+                async openAddUserModal() {
+                    const { value: formValues } = await Swal.fire({
+                        title: 'إضافة مستخدم جديد',
+                        html:
+                            '<input id="swal-user" class="swal2-input" placeholder="اسم المستخدم">' +
+                            '<input id="swal-pass" type="password" class="swal2-input" placeholder="كلمة المرور">' +
+                            '<select id="swal-role" class="swal2-input"><option value="user">موظف عادي</option><option value="admin">أدمن / مدير</option></select>',
+                        focusConfirm: false,
+                        showCancelButton: true,
+                        confirmButtonText: 'إضافة الحساب',
+                        cancelButtonText: 'إلغاء',
+                        preConfirm: () => {
+                            return [
+                                document.getElementById('swal-user').value.trim(),
+                                document.getElementById('swal-pass').value.trim(),
+                                document.getElementById('swal-role').value
+                            ]
+                        }
+                    });
+
+                    if (formValues) {
+                        let [username, password, role] = formValues;
+                        if (!username || !password) {
+                            Swal.fire('خطأ', 'يرجى ملء جميع البيانات', 'error');
+                            return;
+                        }
+
+                        if (this.usersList.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+                            Swal.fire('خطأ', 'اسم المستخدم هذا موجود بالفعل!', 'error');
+                            return;
+                        }
+
+                        this.usersList.push({ username, password, role });
+                        await this.saveToDatabase();
+                        Swal.fire('تم بنجاح', `تم إضافة المستخدم (${username}) ويمكنه تسجيل الدخول فوراً!`, 'success');
+                    }
+                },
+
+                async editUserPassword(user) {
+                    const { value: newPass } = await Swal.fire({
+                        title: `تعديل كلمة مرور (${user.username})`,
+                        input: 'password',
+                        inputPlaceholder: 'أدخل كلمة المرور الجديدة',
+                        showCancelButton: true,
+                        confirmButtonText: 'حفظ',
+                        cancelButtonText: 'إلغاء'
+                    });
+
+                    if (newPass) {
+                        user.password = newPass.trim();
+                        await this.saveToDatabase();
+                        Swal.fire('تم', 'تم تحديث كلمة المرور بنجاح', 'success');
+                    }
+                },
+
+                async deleteUser(user) {
+                    if (confirm(`هل أنت متأكد من حذف المستخدم ${user.username}؟`)) {
+                        this.usersList = this.usersList.filter(u => u.username !== user.username);
+                        await this.saveToDatabase();
+                        Swal.fire('تم', 'تم حذف المستخدم بنجاح', 'success');
+                    }
+                },
+
+                async openChangePasswordModal() {
+                    const { value: newPass } = await Swal.fire({
+                        title: 'تغيير كلمة المرور الخاصة بك',
+                        input: 'password',
+                        inputPlaceholder: 'أدخل كلمة المرور الجديدة',
+                        showCancelButton: true,
+                        confirmButtonText: 'تغيير',
+                        cancelButtonText: 'إلغاء'
+                    });
+
+                    if (newPass) {
+                        this.currentUserObj.password = newPass.trim();
+                        let found = this.usersList.find(u => u.username === this.currentUserObj.username);
+                        if (found) found.password = newPass.trim();
+                        await this.saveToDatabase();
+                        Swal.fire('تم بنجاح', 'تم تغيير كلمة المرور بنجاح', 'success');
+                    }
                 }
             }
         }

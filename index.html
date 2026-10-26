@@ -164,20 +164,18 @@
                         </div>
                     </div>
 
-                    <!-- شريط التحكم في عرض المهام -->
+                    <!-- شريط التحكم في العرض (كل المهام أو مهامي الخاصة) -->
                     <div class="flex flex-wrap justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
                         <div class="flex items-center gap-2">
                             <h2 class="text-base font-bold text-gray-800"><i class="fas fa-list-check text-emerald-600 ml-2"></i> لوحة متابعة المهام</h2>
                         </div>
-                        <template x-if="canAssignTasks()">
-                            <div class="flex items-center gap-2 bg-gray-100 p-1 rounded-xl">
-                                <button @click="taskViewMode = 'all'" :class="taskViewMode === 'all' ? 'bg-white text-emerald-700 shadow-xs' : 'text-gray-600'" class="px-4 py-1.5 rounded-lg text-xs font-bold transition">كل مهام الفريق</button>
-                                <button @click="taskViewMode = 'mine'" :class="taskViewMode === 'mine' ? 'bg-white text-emerald-700 shadow-xs' : 'text-gray-600'" class="px-4 py-1.5 rounded-lg text-xs font-bold transition">مهامي الخاصة فقط</button>
-                            </div>
-                        </template>
+                        <div class="flex items-center gap-2 bg-gray-100 p-1 rounded-xl">
+                            <button @click="taskViewMode = 'all'" :class="taskViewMode === 'all' ? 'bg-white text-emerald-700 shadow-xs' : 'text-gray-600'" class="px-4 py-1.5 rounded-lg text-xs font-bold transition">كل مهام الفريق</button>
+                            <button @click="taskViewMode = 'mine'" :class="taskViewMode === 'mine' ? 'bg-white text-emerald-700 shadow-xs' : 'text-gray-600'" class="px-4 py-1.5 rounded-lg text-xs font-bold transition">مهامي الخاصة</button>
+                        </div>
                     </div>
 
-                    <!-- 1️⃣ قسم المهام قيد التنفيذ (مع تنبيهات المواعيد) -->
+                    <!-- 1️⃣ قسم المهام الجارية (مرتبة تاريخياً وتتزين بالأحمر عند الموعد) -->
                     <div class="space-y-4">
                         <h3 class="text-sm font-bold text-amber-700 flex items-center gap-2">
                             <i class="fas fa-hourglass-half"></i> المهام الجارية وقيد التنفيذ (<span x-text="pendingTasks().length"></span>)
@@ -187,14 +185,13 @@
                             <template x-for="(task, index) in pendingTasks()" :key="task.id || index">
                                 <div class="bg-white border rounded-2xl p-5 shadow-sm space-y-4 relative flex flex-col justify-between"
                                      :class="{
-                                         'border-red-300 bg-red-50/20': getTaskUrgency(task.date).level === 'overdue' || getTaskUrgency(task.date).level === 'today',
+                                         'border-red-400 bg-red-50/25 shadow-md': getTaskUrgency(task.date).level === 'overdue' || getTaskUrgency(task.date).level === 'today',
                                          'border-amber-300 bg-amber-50/20': getTaskUrgency(task.date).level === 'soon',
                                          'border-gray-200': getTaskUrgency(task.date).level === 'normal'
                                      }">
                                      
                                     <!-- شارة التنبيه الذكية للموعد -->
                                     <div class="absolute top-4 left-4 flex gap-1 items-center">
-                                        <!-- شارة التنبيه الموعد -->
                                         <span class="text-xs px-2.5 py-1 rounded-full font-bold shadow-2xs flex items-center gap-1"
                                               :class="{
                                                   'bg-red-100 text-red-700 animate-pulse': getTaskUrgency(task.date).level === 'overdue' || getTaskUrgency(task.date).level === 'today',
@@ -211,7 +208,14 @@
                                     </div>
 
                                     <div class="space-y-2 pr-2 pt-2">
-                                        <h4 class="font-bold text-gray-800 text-lg leading-snug" x-text="task.title"></h4>
+                                        <!-- عنوان المهمة (يتحول للأحمر العاجل عند الاستحقاق أو التأخير) -->
+                                        <h4 class="font-bold text-lg leading-snug"
+                                            :class="{
+                                                'text-red-600 font-black': getTaskUrgency(task.date).level === 'overdue' || getTaskUrgency(task.date).level === 'today',
+                                                'text-gray-800': getTaskUrgency(task.date).level !== 'overdue' && getTaskUrgency(task.date).level !== 'today'
+                                            }"
+                                            x-text="task.title"></h4>
+
                                         <div class="flex items-center gap-2 text-xs text-gray-500">
                                             <i class="fas fa-user-tie text-indigo-600"></i>
                                             <span>المسؤول: <strong class="text-gray-700" x-text="task.assignee"></strong></span>
@@ -280,7 +284,7 @@
                                     </div>
 
                                     <div class="space-y-2 pr-2">
-                                        <h4 class="font-bold text-gray-800 text-lg leading-snug line-through text-gray-600" x-text="task.title"></h4>
+                                        <h4 class="font-bold text-gray-600 text-lg leading-snug line-through" x-text="task.title"></h4>
                                         <div class="flex items-center gap-2 text-xs text-gray-500">
                                             <i class="fas fa-user-tie text-indigo-600"></i>
                                             <span>المسؤول: <strong class="text-gray-700" x-text="task.assignee"></strong></span>
@@ -450,7 +454,7 @@
                 loginError: false,
                 currentUserObj: { username: '', role: 'user', position: 'موظف' },
                 activeTab: 'tasks',
-                taskViewMode: 'all',
+                taskViewMode: 'all', // 'all' or 'mine'
                 isOnline: false,
                 isSyncing: false,
                 tasks: [],
@@ -523,7 +527,6 @@
                     return list;
                 },
 
-                // حساب مدى قرب موعد المهمة لإظهار التنبيه الذكي
                 getTaskUrgency(dateStr) {
                     if (!dateStr) return { level: 'normal', text: 'محدد' };
                     
@@ -547,18 +550,22 @@
                     }
                 },
 
+                // فلترة المهام حسب وضع العرض (الكل أو مهامي) + الترتيب التلقائي حسب التاريخ الأقرب
                 filteredTasks() {
-                    let u = this.currentUserObj.username;
-                    let baseList = [];
-
-                    if (this.canAssignTasks() && this.taskViewMode === 'mine') {
-                        baseList = this.tasks.filter(t => t.assignee === u);
-                    } else if (this.currentUserObj.role === 'admin' || u === 'Amr.Ragab' || u === 'Ahmed.Maher') {
-                        baseList = this.tasks;
-                    } else {
-                        baseList = this.tasks.filter(t => t.assignee === u);
+                    let list = [...this.tasks];
+                    
+                    if (this.taskViewMode === 'mine') {
+                        list = list.filter(t => t.assignee === this.currentUserObj.username);
                     }
-                    return baseList;
+
+                    // الترتيب التلقائي حسب التاريخ (الأقرب أو المستحق في المقدمة)
+                    list.sort((a, b) => {
+                        let dateA = a.date ? new Date(a.date) : new Date('9999-12-31');
+                        let dateB = b.date ? new Date(b.date) : new Date('9999-12-31');
+                        return dateA - dateB;
+                    });
+
+                    return list;
                 },
 
                 pendingTasks() {

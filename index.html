@@ -164,7 +164,7 @@
                         </div>
                     </div>
 
-                    <!-- شريط التحكم في العرض (كل المهام أو مهامي الخاصة) -->
+                    <!-- شريط التحكم في العرض -->
                     <div class="flex flex-wrap justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
                         <div class="flex items-center gap-2">
                             <h2 class="text-base font-bold text-gray-800"><i class="fas fa-list-check text-emerald-600 ml-2"></i> لوحة متابعة المهام</h2>
@@ -175,7 +175,7 @@
                         </div>
                     </div>
 
-                    <!-- 1️⃣ قسم المهام الجارية (مرتبة تاريخياً وتتزين بالأحمر عند الموعد) -->
+                    <!-- 1️⃣ قسم المهام الجارية -->
                     <div class="space-y-4">
                         <h3 class="text-sm font-bold text-amber-700 flex items-center gap-2">
                             <i class="fas fa-hourglass-half"></i> المهام الجارية وقيد التنفيذ (<span x-text="pendingTasks().length"></span>)
@@ -246,9 +246,12 @@
 
                                     <!-- الأزرار -->
                                     <div class="pt-3 border-t border-gray-100 flex flex-wrap justify-between items-center gap-2">
-                                        <button @click="markAsCompleted(task)" class="flex-1 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1">
-                                            <i class="fas fa-check"></i> إتمام المهمة
-                                        </button>
+                                        <!-- زر إتمام المهمة (متاح للمسؤول عنها مباشرة أو للمديرين والمشرفين حصراً لتجنب الخطأ) -->
+                                        <template x-if="canAssignTasks() || task.assignee === currentUserObj.username">
+                                            <button @click="markAsCompleted(task)" class="flex-1 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1">
+                                                <i class="fas fa-check"></i> إتمام المهمة
+                                            </button>
+                                        </template>
 
                                         <template x-if="canAssignTasks()">
                                             <button @click="editTask(task)" class="bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-2 rounded-xl text-xs font-bold transition" title="تعديل المهمة">
@@ -550,7 +553,6 @@
                     }
                 },
 
-                // فلترة المهام حسب وضع العرض (الكل أو مهامي) + الترتيب التلقائي حسب التاريخ الأقرب
                 filteredTasks() {
                     let list = [...this.tasks];
                     

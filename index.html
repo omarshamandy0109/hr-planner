@@ -180,7 +180,8 @@
     </template>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbytMxrJiEKUIf_JPBNbiPU1t-SFSYHfGzHkUELVk28Zwn47qRw8C66aTjdYGOi08Iw-/exec";
+        // رابط السكريبت الجديد والمحدث
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzbAbb2oYBH1knwUL66cciMiaRu0tQa28WhG2Zo_vygVEcHcctWjpSBLsad_8Un6UjY/exec";
 
         function hrApp() {
             return {
@@ -205,7 +206,7 @@
                         localStorage.setItem('pass_Mohamed.Desouky', '1980');
                     }
                     
-                    // استرجاع قائمة المستخدمين الإضافيين لو تم إضافتهم قبل كده
+                    // استرجاع قائمة المستخدمين الإضافيين
                     if (localStorage.getItem('hr_users_list')) {
                         try {
                             this.usersList = JSON.parse(localStorage.getItem('hr_users_list'));

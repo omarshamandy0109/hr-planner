@@ -143,10 +143,10 @@
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <input type="text" x-model="newTask.title" placeholder="عنوان المهمة..." class="px-4 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500">
                             
-                            <!-- قائمة المسؤولين للمشرفين، أو اسم المستخدم الحالي للموظفين -->
+                            <!-- القائمة المنسدلة (تضمين المشرف نفسه وبقية الفريق حسب الصلاحية) -->
                             <template x-if="canAssignTasks()">
                                 <select x-model="newTask.assignee" class="px-4 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
-                                    <option value="">اختر المسؤول عن المهمة...</option>
+                                    <option value="">اختر المسؤول (افتراضي: لنفسك)...</option>
                                     <template x-for="user in getAllowedAssignees()" :key="user.username">
                                         <option :value="user.username" x-text="user.username + ' (' + user.position + ')'"></option>
                                     </template>
@@ -416,13 +416,19 @@
 
                 getAllowedAssignees() {
                     let u = this.currentUserObj.username;
+                    let list = [];
                     if (u === 'Amr.Ragab') {
-                        return this.usersList.filter(user => user.role === 'user');
+                        list = this.usersList.filter(user => user.role === 'user');
                     } else if (u === 'Ahmed.Maher') {
-                        return this.usersList.filter(user => user.username !== 'OMAR' && user.username !== 'Mohamed.Desouky');
+                        list = this.usersList.filter(user => user.username !== 'OMAR' && user.username !== 'Mohamed.Desouky');
                     } else {
-                        return this.usersList.filter(user => user.username !== 'OMAR');
+                        list = this.usersList.filter(user => user.username !== 'OMAR');
                     }
+                    // إضافة المستخدم الحالي للقائمة ليتمكن من إسناد مهمة لنفسه أيضاً
+                    if (!list.some(x => x.username === u)) {
+                        list.unshift(this.currentUserObj);
+                    }
+                    return list;
                 },
 
                 filteredTasks() {
@@ -476,11 +482,8 @@
 
                     let assignedTo = '';
                     if (this.canAssignTasks()) {
-                        if (!this.newTask.assignee) {
-                            Swal.fire('تنبيه', 'يرجى اختيار المسؤول عن المهمة', 'warning');
-                            return;
-                        }
-                        assignedTo = this.newTask.assignee;
+                        // إذا لم يحدد اسماً من القائمة، يتم إسنادها لنفسه افتراضياً
+                        assignedTo = this.newTask.assignee ? this.newTask.assignee : this.currentUserObj.username;
                     } else {
                         assignedTo = this.currentUserObj.username;
                     }

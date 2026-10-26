@@ -143,7 +143,6 @@
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <input type="text" x-model="newTask.title" placeholder="عنوان المهمة..." class="px-4 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500">
                             
-                            <!-- القائمة المنسدلة (تضمين المشرف نفسه وبقية الفريق حسب الصلاحية) -->
                             <template x-if="canAssignTasks()">
                                 <select x-model="newTask.assignee" class="px-4 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
                                     <option value="">اختر المسؤول (افتراضي: لنفسك)...</option>
@@ -165,22 +164,34 @@
                         </div>
                     </div>
 
-                    <!-- عرض المهام -->
-                    <div class="space-y-4">
-                        <div class="flex justify-between items-center">
-                            <h2 class="text-base font-bold text-gray-800">قائمة كروت المهام والمتابعة</h2>
-                            <span class="text-xs text-gray-500" x-text="currentUserObj.role === 'admin' || currentUserObj.username === 'Amr.Ragab' || currentUserObj.username === 'Ahmed.Maher' ? 'عرض كافة مهام النظام' : 'عرض مهامك الخاصة'"></span>
+                    <!-- شريط التحكم في عرض المهام للمشرفين/المديرين -->
+                    <div class="flex flex-wrap justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-base font-bold text-gray-800"><i class="fas fa-list-check text-emerald-600 ml-2"></i> لوحة متابعة المهام</h2>
                         </div>
+                        <template x-if="canAssignTasks()">
+                            <div class="flex items-center gap-2 bg-gray-100 p-1 rounded-xl">
+                                <button @click="taskViewMode = 'all'" :class="taskViewMode === 'all' ? 'bg-white text-emerald-700 shadow-xs' : 'text-gray-600'" class="px-4 py-1.5 rounded-lg text-xs font-bold transition">كل مهام الفريق</button>
+                                <button @click="taskViewMode = 'mine'" :class="taskViewMode === 'mine' ? 'bg-white text-emerald-700 shadow-xs' : 'text-gray-600'" class="px-4 py-1.5 rounded-lg text-xs font-bold transition">مهامي الخاصة فقط</button>
+                            </div>
+                        </template>
+                    </div>
+
+                    <!-- 1️⃣ قسم المهام قيد التنفيذ والجارية -->
+                    <div class="space-y-4">
+                        <h3 class="text-sm font-bold text-amber-700 flex items-center gap-2">
+                            <i class="fas fa-hourglass-half"></i> المهام الجارية وقيد التنفيذ (<span x-text="pendingTasks().length"></span>)
+                        </h3>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <template x-for="(task, index) in filteredTasks()" :key="task.id || index">
+                            <template x-for="(task, index) in pendingTasks()" :key="task.id || index">
                                 <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-4 relative flex flex-col justify-between">
-                                    <div class="absolute top-4 left-4">
-                                        <span :class="task.status === 'completed' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'" class="text-xs px-3 py-1 rounded-full font-bold" x-text="task.status === 'completed' ? 'تم التنفيذ ✅' : 'قيد التنفيذ ⏳'"></span>
+                                    <div class="absolute top-4 left-4 flex gap-1">
+                                        <span class="bg-amber-100 text-amber-800 text-xs px-3 py-1 rounded-full font-bold">قيد التنفيذ ⏳</span>
                                     </div>
 
                                     <div class="space-y-2 pr-2">
-                                        <h3 class="font-bold text-gray-800 text-lg leading-snug" x-text="task.title"></h3>
+                                        <h4 class="font-bold text-gray-800 text-lg leading-snug" x-text="task.title"></h4>
                                         <div class="flex items-center gap-2 text-xs text-gray-500">
                                             <i class="fas fa-user-tie text-indigo-600"></i>
                                             <span>المسؤول: <strong class="text-gray-700" x-text="task.assignee"></strong></span>
@@ -210,14 +221,16 @@
                                     </div>
 
                                     <!-- الأزرار -->
-                                    <div class="pt-3 border-t border-gray-100 flex justify-between items-center gap-2">
-                                        <template x-if="task.status !== 'completed'">
-                                            <button @click="markAsCompleted(task)" class="w-full bg-emerald-50 text-emerald-600 hover:bg-emerald-100 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1">
-                                                <i class="fas fa-check"></i> إتمام المهمة
+                                    <div class="pt-3 border-t border-gray-100 flex flex-wrap justify-between items-center gap-2">
+                                        <button @click="markAsCompleted(task)" class="flex-1 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1">
+                                            <i class="fas fa-check"></i> إتمام المهمة
+                                        </button>
+
+                                        <!-- زر تعديل المهمة (للأدمن أو المشرف أو صاحب المهمة) -->
+                                        <template x-if="canAssignTasks()">
+                                            <button @click="editTask(task)" class="bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-2 rounded-xl text-xs font-bold transition" title="تعديل المهمة">
+                                                <i class="fas fa-edit"></i>
                                             </button>
-                                        </template>
-                                        <template x-if="task.status === 'completed'">
-                                            <span class="w-full text-center text-xs font-bold text-gray-400 bg-gray-100 py-2 rounded-xl">مكتملة نهائياً</span>
                                         </template>
 
                                         <!-- زر الحذف حصرياً لـ OMAR -->
@@ -230,10 +243,70 @@
                                 </div>
                             </template>
                         </div>
-                        <template x-if="filteredTasks().length === 0">
-                            <div class="bg-white p-12 rounded-2xl text-center text-gray-400 font-medium shadow-sm border">لا توجد مهام مسجلة حالياً.</div>
+                        <template x-if="pendingTasks().length === 0">
+                            <div class="bg-white p-8 rounded-2xl text-center text-gray-400 font-medium shadow-sm border">لا توجد مهام جارية حالياً.</div>
                         </template>
                     </div>
+
+                    <!-- 2️⃣ قسم المهام المكتملة في خانة مستقلة -->
+                    <div class="space-y-4 pt-4 border-t border-gray-200">
+                        <h3 class="text-sm font-bold text-emerald-700 flex items-center gap-2">
+                            <i class="fas fa-check-circle"></i> سجل المهام المكتملة والمؤرشفة (<span x-text="completedTasks().length"></span>)
+                        </h3>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <template x-for="(task, index) in completedTasks()" :key="task.id || index">
+                                <div class="bg-emerald-50/40 border border-emerald-200 rounded-2xl p-5 shadow-sm space-y-4 relative flex flex-col justify-between">
+                                    <div class="absolute top-4 left-4">
+                                        <span class="bg-emerald-100 text-emerald-800 text-xs px-3 py-1 rounded-full font-bold">تم التنفيذ ✅</span>
+                                    </div>
+
+                                    <div class="space-y-2 pr-2">
+                                        <h4 class="font-bold text-gray-800 text-lg leading-snug line-through text-gray-600" x-text="task.title"></h4>
+                                        <div class="flex items-center gap-2 text-xs text-gray-500">
+                                            <i class="fas fa-user-tie text-indigo-600"></i>
+                                            <span>المسؤول: <strong class="text-gray-700" x-text="task.assignee"></strong></span>
+                                        </div>
+                                        <div class="flex items-center gap-2 text-xs text-gray-500">
+                                            <i class="fas fa-calendar-alt text-blue-600"></i>
+                                            <span>التاريخ: <strong class="text-gray-700" x-text="task.date"></strong></span>
+                                        </div>
+                                    </div>
+
+                                    <!-- قسم التعليقات والردود -->
+                                    <div class="bg-white border border-emerald-100 rounded-xl p-3 space-y-2">
+                                        <span class="text-xs font-bold text-gray-600 block"><i class="fas fa-comments text-indigo-600 ml-1"></i> التعليقات والملاحظات:</span>
+                                        <div class="max-h-24 overflow-y-auto space-y-1 text-xs text-gray-700 font-medium">
+                                            <template x-if="task.comments">
+                                                <div class="whitespace-pre-line bg-gray-50 p-2 rounded-lg border border-gray-100" x-text="task.comments"></div>
+                                            </template>
+                                            <template x-if="!task.comments">
+                                                <span class="text-gray-400 italic block">لا توجد تعليقات...</span>
+                                            </template>
+                                        </div>
+                                        <div class="flex gap-2 pt-1">
+                                            <input type="text" x-model="task.newCommentText" @keyup.enter="addComment(task)" placeholder="اكتب تعليقاً إضافياً..." class="flex-1 px-3 py-1.5 text-xs border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                                            <button @click="addComment(task)" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 text-xs font-bold rounded-lg transition">إرسال</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="pt-3 border-t border-emerald-100 flex justify-between items-center gap-2">
+                                        <span class="w-full text-center text-xs font-bold text-emerald-700 bg-emerald-100/60 py-2 rounded-xl">مكتملة ومؤرشفة نهائياً</span>
+                                        
+                                        <template x-if="currentUserObj.username === 'OMAR'">
+                                            <button @click="deleteTask(task)" class="bg-red-50 text-red-600 hover:bg-red-100 px-3 py-2 rounded-xl text-xs font-bold transition" title="حذف المهمة">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                        <template x-if="completedTasks().length === 0">
+                            <div class="bg-white p-8 rounded-2xl text-center text-gray-400 font-medium shadow-sm border">لا توجد مهام مكتملة حتى الآن.</div>
+                        </template>
+                    </div>
+
                 </div>
 
                 <!-- 2️⃣ تبويب KPIs -->
@@ -359,6 +432,7 @@
                 loginError: false,
                 currentUserObj: { username: '', role: 'user', position: 'موظف' },
                 activeTab: 'tasks',
+                taskViewMode: 'all', // 'all' or 'mine'
                 isOnline: false,
                 isSyncing: false,
                 tasks: [],
@@ -396,6 +470,7 @@
                         this.isLoggedIn = true;
                         this.currentUserObj = found;
                         this.loginError = false;
+                        this.taskViewMode = 'all';
                         Swal.fire({ icon: 'success', title: 'أهلاً بك ' + found.username, timer: 1200, showConfirmButton: false });
                     } else {
                         this.loginError = true;
@@ -424,7 +499,6 @@
                     } else {
                         list = this.usersList.filter(user => user.username !== 'OMAR');
                     }
-                    // إضافة المستخدم الحالي للقائمة ليتمكن من إسناد مهمة لنفسه أيضاً
                     if (!list.some(x => x.username === u)) {
                         list.unshift(this.currentUserObj);
                     }
@@ -433,11 +507,25 @@
 
                 filteredTasks() {
                     let u = this.currentUserObj.username;
-                    if (this.currentUserObj.role === 'admin' || u === 'Amr.Ragab' || u === 'Ahmed.Maher') {
-                        return this.tasks;
+                    let baseList = [];
+
+                    // التحقق من وضع العرض للمشرفين والمديرين
+                    if (this.canAssignTasks() && this.taskViewMode === 'mine') {
+                        baseList = this.tasks.filter(t => t.assignee === u);
+                    } else if (this.currentUserObj.role === 'admin' || u === 'Amr.Ragab' || u === 'Ahmed.Maher') {
+                        baseList = this.tasks;
                     } else {
-                        return this.tasks.filter(t => t.assignee === u);
+                        baseList = this.tasks.filter(t => t.assignee === u);
                     }
+                    return baseList;
+                },
+
+                pendingTasks() {
+                    return this.filteredTasks().filter(t => t.status !== 'completed');
+                },
+
+                completedTasks() {
+                    return this.filteredTasks().filter(t => t.status === 'completed');
                 },
 
                 completionRate() {
@@ -482,7 +570,6 @@
 
                     let assignedTo = '';
                     if (this.canAssignTasks()) {
-                        // إذا لم يحدد اسماً من القائمة، يتم إسنادها لنفسه افتراضياً
                         assignedTo = this.newTask.assignee ? this.newTask.assignee : this.currentUserObj.username;
                     } else {
                         assignedTo = this.currentUserObj.username;
@@ -512,6 +599,50 @@
                         });
                     } catch (e) {
                         console.error(e);
+                    }
+                },
+
+                // تعديل تفاصيل المهمة
+                async editTask(task) {
+                    const { value: formValues } = await Swal.fire({
+                        title: 'تعديل المهمة',
+                        html:
+                            `<input id="swal-title" class="swal2-input" placeholder="عنوان المهمة" value="${task.title}">` +
+                            `<input id="swal-date" type="date" class="swal2-input" value="${task.date}">`,
+                        focusConfirm: false,
+                        showCancelButton: true,
+                        confirmButtonText: 'حفظ التعديلات',
+                        cancelButtonText: 'إلغاء',
+                        preConfirm: () => {
+                            return [
+                                document.getElementById('swal-title').value.trim(),
+                                document.getElementById('swal-date').value
+                            ]
+                        }
+                    });
+
+                    if (formValues) {
+                        let [newTitle, newDate] = formValues;
+                        if (!newTitle) {
+                            Swal.fire('خطأ', 'عنوان المهمة لا يمكن أن يكون فارغاً', 'error');
+                            return;
+                        }
+
+                        task.title = newTitle;
+                        task.date = newDate || task.date;
+
+                        Swal.fire({ icon: 'success', title: 'تم تعديل المهمة بنجاح', timer: 1200, showConfirmButton: false });
+
+                        try {
+                            await fetch(SCRIPT_URL, {
+                                method: 'POST',
+                                mode: 'no-cors',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ action: 'add_task', task: task }) // يقوم بتحديث المهمة بالـ ID نفسه
+                            });
+                        } catch (e) {
+                            console.error(e);
+                        }
                     }
                 },
 

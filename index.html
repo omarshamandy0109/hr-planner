@@ -355,7 +355,7 @@
                     </div>
                 </div>
 
-                <!-- 2️⃣ تبويب التقارير والطباعة (مطابق 100% لعدد الصفوف والعدادات) -->
+                <!-- 2️⃣ تبويب التقارير والطباعة (مرتبط حصرياً بالجدول المعروض) -->
                 <div x-show="activeTab === 'reports'" class="space-y-6">
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-6">
                         <div class="flex flex-wrap justify-between items-center gap-4 border-b pb-4">
@@ -413,7 +413,7 @@
                                 </template>
                             </div>
 
-                            <!-- ملخص تحليل KPI المصغر للتقرير (ربط حاسم 100% بالصفوف المعروضة تحت) -->
+                            <!-- العدادات العلوية للتقرير مرتبطة حصرياً بـ getReportTasks() -->
                             <div class="bg-indigo-50/50 border border-indigo-100 rounded-xl p-4 flex flex-wrap justify-around items-center text-center gap-4">
                                 <div>
                                     <span class="text-xs text-gray-500 block">إجمالي المهام المعروضة</span>
@@ -436,7 +436,7 @@
                                 </div>
                             </div>
 
-                            <!-- جدول مهام التقرير (ترقيم نظيف متسلسل 1, 2, 3...) -->
+                            <!-- جدول مهام التقرير بترقيم تسلسلي نظيف يبدأ من 1 -->
                             <div class="overflow-x-auto">
                                 <table class="w-full text-right border-collapse border border-gray-200">
                                     <thead>
@@ -660,6 +660,7 @@
                     return Math.round((completed / list.length) * 100);
                 },
 
+                // دالة التقارير أصبحت تصفي حسب الموظف وحسب حالة المهمة معاً لضمان مطابقة تامة مع الجدول
                 getReportTasks() {
                     let list = [...this.tasks];
                     if (this.reportType === 'user' && this.selectedReportUser) {

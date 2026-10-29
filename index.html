@@ -102,7 +102,7 @@
 
                 <!-- 1️⃣ قسم المهام -->
                 <div x-show="activeTab === 'tasks'" class="space-y-6">
-                    <!-- الإحصائيات (محدثة وتفاعلية لحظياً 100%) -->
+                    <!-- الإحصائيات المصححة بالكامل -->
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
                             <div>
@@ -559,7 +559,7 @@
                 usersList: [],
                 newTask: { title: '', assignee: '', date: '', status: 'pending', comments: '' },
                 
-                // مصفوفات تفاعلية مباشرة
+                // مصفوفات العرض الموحدة والمتزامنة
                 pendingList: [],
                 completedList: [],
                 stats: { total: 0, completed: 0, pending: 0, rate: 0 },
@@ -588,24 +588,28 @@
                     }
                 },
 
-                // التحديث الفوري المباشر للحسبة والقوائم المعروضة
+                // المحرك الرئيسي والوحيد لحساب وتحديث الإحصائيات والجداول
                 updateViewAndStats() {
                     let list = [...this.tasks];
                     let myName = (this.currentUserObj.username || '').toLowerCase().trim();
                     
+                    // 1. الفلترة حسب نمط العرض (مهامي الخاصة أو كل مهام الفريق)
                     if (this.taskViewMode === 'mine') {
                         list = list.filter(t => (t.assignee || '').toLowerCase().trim() === myName);
                     }
 
+                    // 2. الترتيب التلقائي حسب التاريخ
                     list.sort((a, b) => {
                         let dateA = a.date ? new Date(a.date) : new Date('9999-12-31');
                         let dateB = b.date ? new Date(b.date) : new Date('9999-12-31');
                         return dateA - dateB;
                     });
 
-                    this.pendingList = list.filter(t => t.status !== 'completed');
+                    // 3. تقسيم القوائم بحسب الشرط الموحد والدقيق
                     this.completedList = list.filter(t => t.status === 'completed');
+                    this.pendingList = list.filter(t => t.status !== 'completed');
 
+                    // 4. الحسابات الدقيقة للكروت والعناوين
                     let total = list.length;
                     let completed = this.completedList.length;
                     let pending = this.pendingList.length;

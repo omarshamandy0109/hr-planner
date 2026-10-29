@@ -102,33 +102,33 @@
 
                 <!-- 1️⃣ قسم المهام -->
                 <div x-show="activeTab === 'tasks'" class="space-y-6">
-                    <!-- الإحصائيات المصححة بالكامل -->
+                    <!-- الإحصائيات دقيقة ومترابطة تفاعلياً -->
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
                             <div>
                                 <p class="text-sm text-gray-500 font-medium">إجمالي المهام المعروضة</p>
-                                <h3 class="text-3xl font-bold text-gray-800 mt-1" x-text="stats.total">0</h3>
+                                <h3 class="text-3xl font-bold text-gray-800 mt-1" x-text="getFilteredTasks().length">0</h3>
                             </div>
                             <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-xl"><i class="fas fa-clipboard-list"></i></div>
                         </div>
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
                             <div>
                                 <p class="text-sm text-gray-500 font-medium">المنجزة بالكامل</p>
-                                <h3 class="text-3xl font-bold text-emerald-600 mt-1" x-text="stats.completed">0</h3>
+                                <h3 class="text-3xl font-bold text-emerald-600 mt-1" x-text="getCompletedTasks().length">0</h3>
                             </div>
                             <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-xl"><i class="fas fa-check-circle"></i></div>
                         </div>
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
                             <div>
                                 <p class="text-sm text-gray-500 font-medium">قيد التنفيذ والجارية</p>
-                                <h3 class="text-3xl font-bold text-amber-600 mt-1" x-text="stats.pending">0</h3>
+                                <h3 class="text-3xl font-bold text-amber-600 mt-1" x-text="getPendingTasks().length">0</h3>
                             </div>
                             <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center text-xl"><i class="fas fa-clock"></i></div>
                         </div>
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
                             <div>
                                 <p class="text-sm text-gray-500 font-medium">نسبة الإنجاز العامة</p>
-                                <h3 class="text-3xl font-bold text-indigo-600 mt-1" x-text="stats.rate + '%'">0%</h3>
+                                <h3 class="text-3xl font-bold text-indigo-600 mt-1" x-text="getCompletionRate() + '%'">0%</h3>
                             </div>
                             <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-xl"><i class="fas fa-chart-pie"></i></div>
                         </div>
@@ -167,8 +167,8 @@
                     <!-- شريط التحكم في العرض -->
                     <div class="flex flex-wrap justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
                         <div class="flex items-center gap-2 bg-gray-100 p-1 rounded-xl">
-                            <button @click="setTaskViewMode('all')" :class="taskViewMode === 'all' ? 'bg-white text-emerald-700 shadow-xs' : 'text-gray-600'" class="px-4 py-1.5 rounded-lg text-xs font-bold transition">كل مهام الفريق</button>
-                            <button @click="setTaskViewMode('mine')" :class="taskViewMode === 'mine' ? 'bg-white text-emerald-700 shadow-xs' : 'text-gray-600'" class="px-4 py-1.5 rounded-lg text-xs font-bold transition">مهامي الخاصة</button>
+                            <button @click="taskViewMode = 'all'" :class="taskViewMode === 'all' ? 'bg-white text-emerald-700 shadow-xs' : 'text-gray-600'" class="px-4 py-1.5 rounded-lg text-xs font-bold transition">كل مهام الفريق</button>
+                            <button @click="taskViewMode = 'mine'" :class="taskViewMode === 'mine' ? 'bg-white text-emerald-700 shadow-xs' : 'text-gray-600'" class="px-4 py-1.5 rounded-lg text-xs font-bold transition">مهامي الخاصة</button>
                         </div>
 
                         <div class="flex items-center gap-2 bg-gray-100 p-1 rounded-xl">
@@ -184,13 +184,13 @@
                     <!-- 1️⃣ قسم المهام الجارية -->
                     <div class="space-y-4">
                         <h3 class="text-sm font-bold text-amber-700 flex items-center gap-2">
-                            <i class="fas fa-hourglass-half"></i> المهام الجارية وقيد التنفيذ ( <span x-text="stats.pending"></span> )
+                            <i class="fas fa-hourglass-half"></i> المهام الجارية وقيد التنفيذ ( <span x-text="getPendingTasks().length"></span> )
                         </h3>
 
                         <!-- عرض بطاقات (Grid) -->
                         <template x-if="displayMode === 'grid'">
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                <template x-for="(task, index) in pendingList" :key="task.id || index">
+                                <template x-for="(task, index) in getPendingTasks()" :key="task.id || index">
                                     <div class="bg-white border rounded-2xl p-5 shadow-sm space-y-4 relative flex flex-col justify-between"
                                          :class="{
                                              'border-red-400 bg-red-50/25 shadow-md': getTaskUrgency(task.date).level === 'overdue' || getTaskUrgency(task.date).level === 'today',
@@ -287,7 +287,7 @@
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-gray-100 text-sm">
-                                        <template x-for="(task, index) in pendingList" :key="task.id || index">
+                                        <template x-for="(task, index) in getPendingTasks()" :key="task.id || index">
                                             <tr class="hover:bg-gray-50/50 transition">
                                                 <td class="p-4 font-bold"
                                                     :class="{
@@ -324,7 +324,7 @@
                             </div>
                         </template>
 
-                        <template x-if="pendingList.length === 0">
+                        <template x-if="getPendingTasks().length === 0">
                             <div class="bg-white p-8 rounded-2xl text-center text-gray-400 font-medium shadow-sm border">لا توجد مهام جارية حالياً.</div>
                         </template>
                     </div>
@@ -332,13 +332,13 @@
                     <!-- 2️⃣ قسم المهام المكتملة -->
                     <div class="space-y-4 pt-4 border-t border-gray-200">
                         <h3 class="text-sm font-bold text-emerald-700 flex items-center gap-2">
-                            <i class="fas fa-check-circle"></i> سجل المهام المكتملة والمؤرشفة ( <span x-text="stats.completed"></span> )
+                            <i class="fas fa-check-circle"></i> سجل المهام المكتملة والمؤرشفة ( <span x-text="getCompletedTasks().length"></span> )
                         </h3>
 
                         <!-- عرض بطاقات الأرشيف -->
                         <template x-if="displayMode === 'grid'">
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                <template x-for="(task, index) in completedList" :key="task.id || index">
+                                <template x-for="(task, index) in getCompletedTasks()" :key="task.id || index">
                                     <div class="bg-emerald-50/40 border border-emerald-200 rounded-2xl p-5 shadow-sm space-y-4 relative flex flex-col justify-between">
                                         <div class="absolute top-4 left-4">
                                             <span class="bg-emerald-100 text-emerald-800 text-xs px-3 py-1 rounded-full font-bold">تم التنفيذ ✅</span>
@@ -400,7 +400,7 @@
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-gray-100 text-sm">
-                                        <template x-for="(task, index) in completedList" :key="task.id || index">
+                                        <template x-for="(task, index) in getCompletedTasks()" :key="task.id || index">
                                             <tr class="hover:bg-gray-50/50 transition">
                                                 <td class="p-4 font-bold text-gray-600 line-through" x-text="task.title"></td>
                                                 <td class="p-4 text-gray-700" x-text="task.assignee"></td>
@@ -420,7 +420,7 @@
                             </div>
                         </template>
 
-                        <template x-if="completedList.length === 0">
+                        <template x-if="getCompletedTasks().length === 0">
                             <div class="bg-white p-8 rounded-2xl text-center text-gray-400 font-medium shadow-sm border">لا توجد مهام مكتملة حتى الآن.</div>
                         </template>
                     </div>
@@ -558,11 +558,6 @@
                 deletedIds: JSON.parse(localStorage.getItem('deleted_tasks_ids') || '[]'),
                 usersList: [],
                 newTask: { title: '', assignee: '', date: '', status: 'pending', comments: '' },
-                
-                // مصفوفات العرض الموحدة والمتزامنة
-                pendingList: [],
-                completedList: [],
-                stats: { total: 0, completed: 0, pending: 0, rate: 0 },
 
                 init() {
                     this.loadData();
@@ -581,46 +576,43 @@
                         }
                         
                         this.isOnline = true;
-                        this.updateViewAndStats();
                     } catch (e) {
                         console.error("Load error:", e);
                         this.isOnline = false;
                     }
                 },
 
-                // المحرك الرئيسي والوحيد لحساب وتحديث الإحصائيات والجداول
-                updateViewAndStats() {
+                // محرك الفلترة الأساسي (العمود الفقري لحسابات الواجهة الأمامية)
+                getFilteredTasks() {
                     let list = [...this.tasks];
                     let myName = (this.currentUserObj.username || '').toLowerCase().trim();
                     
-                    // 1. الفلترة حسب نمط العرض (مهامي الخاصة أو كل مهام الفريق)
                     if (this.taskViewMode === 'mine') {
                         list = list.filter(t => (t.assignee || '').toLowerCase().trim() === myName);
                     }
 
-                    // 2. الترتيب التلقائي حسب التاريخ
                     list.sort((a, b) => {
                         let dateA = a.date ? new Date(a.date) : new Date('9999-12-31');
                         let dateB = b.date ? new Date(b.date) : new Date('9999-12-31');
                         return dateA - dateB;
                     });
 
-                    // 3. تقسيم القوائم بحسب الشرط الموحد والدقيق
-                    this.completedList = list.filter(t => t.status === 'completed');
-                    this.pendingList = list.filter(t => t.status !== 'completed');
-
-                    // 4. الحسابات الدقيقة للكروت والعناوين
-                    let total = list.length;
-                    let completed = this.completedList.length;
-                    let pending = this.pendingList.length;
-                    let rate = total > 0 ? Math.round((completed / total) * 100) : 0;
-
-                    this.stats = { total, completed, pending, rate };
+                    return list;
                 },
 
-                setTaskViewMode(mode) {
-                    this.taskViewMode = mode;
-                    this.updateViewAndStats();
+                getPendingTasks() {
+                    return this.getFilteredTasks().filter(t => t.status !== 'completed');
+                },
+
+                getCompletedTasks() {
+                    return this.getFilteredTasks().filter(t => t.status === 'completed');
+                },
+
+                getCompletionRate() {
+                    let list = this.getFilteredTasks();
+                    if (list.length === 0) return 0;
+                    let completed = list.filter(t => t.status === 'completed').length;
+                    return Math.round((completed / list.length) * 100);
                 },
 
                 handleLogin() {
@@ -634,7 +626,6 @@
                         this.currentUserObj = found;
                         this.loginError = false;
                         this.taskViewMode = 'mine';
-                        this.updateViewAndStats();
                         Swal.fire({ icon: 'success', title: 'أهلاً بك ' + found.username, timer: 1200, showConfirmButton: false });
                     } else {
                         this.loginError = true;
@@ -744,7 +735,6 @@
 
                     this.tasks.push(taskItem);
                     this.newTask = { title: '', assignee: '', date: '', status: 'pending', comments: '' };
-                    this.updateViewAndStats();
                     
                     Swal.fire({ icon: 'success', title: 'تمت إضافة المهمة بنجاح', timer: 1500, showConfirmButton: false });
 
@@ -787,7 +777,6 @@
 
                         task.title = newTitle;
                         task.date = newDate || task.date;
-                        this.updateViewAndStats();
 
                         Swal.fire({ icon: 'success', title: 'تم تعديل المهمة بنجاح', timer: 1200, showConfirmButton: false });
 
@@ -834,8 +823,6 @@
                 async markAsCompleted(task) {
                     if (task.status === 'completed') return;
                     task.status = 'completed';
-                    this.updateViewAndStats();
-
                     Swal.fire({ icon: 'success', title: 'تم إتمام المهمة بنجاح', timer: 1000, showConfirmButton: false });
                     try {
                         await fetch(SCRIPT_URL, {
@@ -865,7 +852,6 @@
                             localStorage.setItem('deleted_tasks_ids', JSON.stringify(this.deletedIds));
                         }
                         
-                        this.updateViewAndStats();
                         Swal.fire('تم', 'تم حذف المهمة بنجاح', 'success');
 
                         try {

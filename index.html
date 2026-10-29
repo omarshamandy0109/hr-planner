@@ -102,26 +102,26 @@
 
                 <!-- 1️⃣ قسم المهام -->
                 <div x-show="activeTab === 'tasks'" class="space-y-6">
-                    <!-- الإحصائيات المصححة بدقة -->
+                    <!-- الإحصائيات -->
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
                             <div>
                                 <p class="text-sm text-gray-500 font-medium">إجمالي المهام المعروضة</p>
-                                <h3 class="text-3xl font-bold text-gray-800 mt-1" x-text="allCurrentTasks().length">0</h3>
+                                <h3 class="text-3xl font-bold text-gray-800 mt-1" x-text="filteredTasks().length">0</h3>
                             </div>
                             <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-xl"><i class="fas fa-clipboard-list"></i></div>
                         </div>
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
                             <div>
                                 <p class="text-sm text-gray-500 font-medium">المنجزة بالكامل</p>
-                                <h3 class="text-3xl font-bold text-emerald-600 mt-1" x-text="allCurrentTasks().filter(t => t.status === 'completed').length">0</h3>
+                                <h3 class="text-3xl font-bold text-emerald-600 mt-1" x-text="completedTasks().length">0</h3>
                             </div>
                             <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-xl"><i class="fas fa-check-circle"></i></div>
                         </div>
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
                             <div>
                                 <p class="text-sm text-gray-500 font-medium">قيد التنفيذ والجارية</p>
-                                <h3 class="text-3xl font-bold text-amber-600 mt-1" x-text="allCurrentTasks().filter(t => t.status !== 'completed').length">0</h3>
+                                <h3 class="text-3xl font-bold text-amber-600 mt-1" x-text="pendingTasks().length">0</h3>
                             </div>
                             <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center text-xl"><i class="fas fa-clock"></i></div>
                         </div>
@@ -164,14 +164,13 @@
                         </div>
                     </div>
 
-                    <!-- شريط التحكم في العرض (كل المهام/مهامي + اختيار طريقة العرض كروت أو جدول) -->
+                    <!-- شريط التحكم في العرض -->
                     <div class="flex flex-wrap justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
                         <div class="flex items-center gap-2 bg-gray-100 p-1 rounded-xl">
                             <button @click="taskViewMode = 'all'" :class="taskViewMode === 'all' ? 'bg-white text-emerald-700 shadow-xs' : 'text-gray-600'" class="px-4 py-1.5 rounded-lg text-xs font-bold transition">كل مهام الفريق</button>
                             <button @click="taskViewMode = 'mine'" :class="taskViewMode === 'mine' ? 'bg-white text-emerald-700 shadow-xs' : 'text-gray-600'" class="px-4 py-1.5 rounded-lg text-xs font-bold transition">مهامي الخاصة</button>
                         </div>
 
-                        <!-- اختيار طريقة العرض: كروت أو جدول (List) -->
                         <div class="flex items-center gap-2 bg-gray-100 p-1 rounded-xl">
                             <button @click="displayMode = 'grid'" :class="displayMode === 'grid' ? 'bg-white text-indigo-700 shadow-xs' : 'text-gray-600'" class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5">
                                 <i class="fas fa-th-large"></i> عرض كروت
@@ -185,7 +184,7 @@
                     <!-- 1️⃣ قسم المهام الجارية -->
                     <div class="space-y-4">
                         <h3 class="text-sm font-bold text-amber-700 flex items-center gap-2">
-                            <i class="fas fa-hourglass-half"></i> المهام الجارية وقيد التنفيذ (<span x-text="pendingTasks().length"></span>)
+                            <i class="fas fa-hourglass-half"></i> المهام الجارية وقيد التنفيذ ( <span x-text="pendingTasks().length"></span> )
                         </h3>
 
                         <!-- عرض بطاقات (Grid) -->
@@ -251,7 +250,7 @@
                                         </div>
 
                                         <div class="pt-3 border-t border-gray-100 flex flex-wrap justify-between items-center gap-2">
-                                            <template x-if="canAssignTasks() || task.assignee === currentUserObj.username">
+                                            <template x-if="canAssignTasks() || task.assignee.toLowerCase().trim() === currentUserObj.username.toLowerCase().trim()">
                                                 <button @click="markAsCompleted(task)" class="flex-1 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1">
                                                     <i class="fas fa-check"></i> إتمام المهمة
                                                 </button>
@@ -308,7 +307,7 @@
                                                           x-text="getTaskUrgency(task.date).text"></span>
                                                 </td>
                                                 <td class="p-4 text-center space-x-2 space-x-reverse">
-                                                    <template x-if="canAssignTasks() || task.assignee === currentUserObj.username">
+                                                    <template x-if="canAssignTasks() || task.assignee.toLowerCase().trim() === currentUserObj.username.toLowerCase().trim()">
                                                         <button @click="markAsCompleted(task)" class="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-3 py-1.5 rounded-lg text-xs font-bold transition">إتمام</button>
                                                     </template>
                                                     <template x-if="canAssignTasks()">
@@ -330,10 +329,10 @@
                         </template>
                     </div>
 
-                    <!-- 2️⃣ قسم المهام المكتملة في خانة مستقلة -->
+                    <!-- 2️⃣ قسم المهام المكتملة -->
                     <div class="space-y-4 pt-4 border-t border-gray-200">
                         <h3 class="text-sm font-bold text-emerald-700 flex items-center gap-2">
-                            <i class="fas fa-check-circle"></i> سجل المهام المكتملة والمؤرشفة (<span x-text="completedTasks().length"></span>)
+                            <i class="fas fa-check-circle"></i> سجل المهام المكتملة والمؤرشفة ( <span x-text="completedTasks().length"></span> )
                         </h3>
 
                         <!-- عرض بطاقات الأرشيف -->
@@ -397,6 +396,7 @@
                                             <th class="p-4">المسؤول</th>
                                             <th class="p-4">التاريخ</th>
                                             <th class="p-4">الحالة</th>
+                                            <th class="p-4 text-center">الإجراءات</th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-gray-100 text-sm">
@@ -407,6 +407,11 @@
                                                 <td class="p-4 text-gray-600 font-mono text-xs" x-text="task.date"></td>
                                                 <td class="p-4">
                                                     <span class="text-xs px-2.5 py-1 rounded-full font-bold bg-emerald-100 text-emerald-800">مكتملة ✅</span>
+                                                </td>
+                                                <td class="p-4 text-center">
+                                                    <template x-if="currentUserObj.username === 'OMAR'">
+                                                        <button @click="deleteTask(task)" class="bg-red-50 text-red-600 hover:bg-red-100 px-2.5 py-1.5 rounded-lg text-xs font-bold transition">حذف</button>
+                                                    </template>
                                                 </td>
                                             </tr>
                                         </template>
@@ -545,8 +550,8 @@
                 loginError: false,
                 currentUserObj: { username: '', role: 'user', position: 'موظف' },
                 activeTab: 'tasks',
-                taskViewMode: 'all', // 'all' or 'mine'
-                displayMode: 'grid',  // 'grid' (كروت) or 'list' (جدول)
+                taskViewMode: 'mine', 
+                displayMode: 'list',   
                 isOnline: false,
                 isSyncing: false,
                 tasks: [],
@@ -564,7 +569,7 @@
                         
                         if (data.users) this.usersList = data.users;
                         if (data.tasks) {
-                            this.tasks = data.tasks.map(t => ({ ...t, newCommentText: '' }));
+                            this.tasks = data.tasks.map(t => ({ ...t, id: String(t.id), newCommentText: '' }));
                         }
                         
                         this.isOnline = true;
@@ -584,7 +589,7 @@
                         this.isLoggedIn = true;
                         this.currentUserObj = found;
                         this.loginError = false;
-                        this.taskViewMode = 'all';
+                        this.taskViewMode = 'mine';
                         Swal.fire({ icon: 'success', title: 'أهلاً بك ' + found.username, timer: 1200, showConfirmButton: false });
                     } else {
                         this.loginError = true;
@@ -642,15 +647,14 @@
                     }
                 },
 
-                // جلب المهام بناءً على وضع العرض (الكل أو مهامي الخاصة) مع الترتيب حسب التاريخ الأقرب
                 filteredTasks() {
                     let list = [...this.tasks];
+                    let myName = (this.currentUserObj.username || '').toLowerCase().trim();
                     
                     if (this.taskViewMode === 'mine') {
-                        list = list.filter(t => t.assignee === this.currentUserObj.username);
+                        list = list.filter(t => (t.assignee || '').toLowerCase().trim() === myName);
                     }
 
-                    // الترتيب التلقائي حسب التاريخ الأقرب في البداية
                     list.sort((a, b) => {
                         let dateA = a.date ? new Date(a.date) : new Date('9999-12-31');
                         let dateB = b.date ? new Date(b.date) : new Date('9999-12-31');
@@ -658,10 +662,6 @@
                     });
 
                     return list;
-                },
-
-                allCurrentTasks() {
-                    return this.filteredTasks();
                 },
 
                 pendingTasks() {
@@ -672,7 +672,6 @@
                     return this.filteredTasks().filter(t => t.status === 'completed');
                 },
 
-                // حساب نسبة الإنجاز بدقة بناءً على المهام المعروضة حالياً
                 exactCompletionRate() {
                     let list = this.filteredTasks();
                     if (list.length === 0) return 0;
@@ -682,7 +681,7 @@
 
                 getDetailedKpis() {
                     return this.usersList.filter(u => u.username !== 'OMAR').map(user => {
-                        let userTasks = this.tasks.filter(t => t.assignee === user.username);
+                        let userTasks = this.tasks.filter(t => (t.assignee || '').toLowerCase().trim() === (user.username || '').toLowerCase().trim());
                         let total = userTasks.length;
                         let completed = userTasks.filter(t => t.status === 'completed').length;
                         let pending = total - completed;
@@ -721,7 +720,7 @@
                     }
 
                     let taskItem = {
-                        id: Date.now().toString(),
+                        id: String(Date.now()),
                         title: this.newTask.title.trim(),
                         assignee: assignedTo,
                         date: this.newTask.date || new Date().toISOString().split('T')[0],
@@ -782,7 +781,7 @@
                                 method: 'POST',
                                 mode: 'no-cors',
                                 headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ action: 'add_task', task: task })
+                                body: JSON.stringify({ action: 'add_task', task: { ...task, id: String(task.id) } })
                             });
                         } catch (e) {
                             console.error(e);
@@ -809,7 +808,7 @@
                             method: 'POST',
                             mode: 'no-cors',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ action: 'update_comments', id: task.id, comments: task.comments })
+                            body: JSON.stringify({ action: 'update_comments', id: String(task.id), comments: task.comments })
                         });
                         Swal.fire({ icon: 'success', title: 'تم إرسال التعليق', timer: 1000, showConfirmButton: false });
                     } catch (e) {
@@ -826,7 +825,7 @@
                             method: 'POST',
                             mode: 'no-cors',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ action: 'update_status', id: task.id, status: 'completed' })
+                            body: JSON.stringify({ action: 'update_status', id: String(task.id), status: 'completed' })
                         });
                     } catch (e) {
                         console.error(e);
@@ -839,15 +838,18 @@
                         return;
                     }
 
-                    if (confirm(`هل أنت متأكد من حذف المهمة: "${task.title}"؟`)) {
-                        this.tasks = this.tasks.filter(t => t.id !== task.id);
+                    if (confirm(`هل أنت متأكد من حذف المهمة: "${task.title}" نهائياً؟`)) {
+                        let targetId = String(task.id);
+                        this.tasks = this.tasks.filter(t => String(t.id) !== targetId);
+                        
                         Swal.fire('تم', 'تم حذف المهمة بنجاح', 'success');
+
                         try {
                             await fetch(SCRIPT_URL, {
                                 method: 'POST',
                                 mode: 'no-cors',
                                 headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ action: 'delete_task', id: task.id })
+                                body: JSON.stringify({ action: 'delete_task', id: targetId })
                             });
                         } catch (e) {
                             console.error(e);

@@ -355,7 +355,7 @@
                     </div>
                 </div>
 
-                <!-- 2️⃣ تبويب التقارير والطباعة -->
+                <!-- 2️⃣ تبويب التقارير والطباعة (مطابق 100% لعدد الصفوف والعدادات) -->
                 <div x-show="activeTab === 'reports'" class="space-y-6">
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-6">
                         <div class="flex flex-wrap justify-between items-center gap-4 border-b pb-4">
@@ -413,7 +413,7 @@
                                 </template>
                             </div>
 
-                            <!-- ملخص تحليل KPI المصغر للتقرير -->
+                            <!-- ملخص تحليل KPI المصغر للتقرير (مرتبط 100% بالجدول الظاهر) -->
                             <div class="bg-indigo-50/50 border border-indigo-100 rounded-xl p-4 flex flex-wrap justify-around items-center text-center gap-4">
                                 <div>
                                     <span class="text-xs text-gray-500 block">إجمالي المهام المعروضة</span>
@@ -436,12 +436,12 @@
                                 </div>
                             </div>
 
-                            <!-- جدول مهام التقرير -->
+                            <!-- جدول مهام التقرير (مع ترقيم تسلسلي يبدأ من 1 تصاعدياً) -->
                             <div class="overflow-x-auto">
                                 <table class="w-full text-right border-collapse border border-gray-200">
                                     <thead>
                                         <tr class="bg-gray-100 text-gray-700 text-sm border-b">
-                                            <th class="p-3 border">#</th>
+                                            <th class="p-3 border text-center">#</th>
                                             <th class="p-3 border">عنوان المهمة</th>
                                             <th class="p-3 border">المسؤول</th>
                                             <th class="p-3 border">التاريخ</th>
@@ -451,7 +451,7 @@
                                     <tbody class="text-sm divide-y">
                                         <template x-for="(task, index) in getReportTasks()" :key="task.id || index">
                                             <tr>
-                                                <td class="p-3 border text-center font-mono" x-text="index + 1"></td>
+                                                <td class="p-3 border text-center font-mono font-bold text-indigo-600" x-text="index + 1"></td>
                                                 <td class="p-3 border font-bold" x-text="task.title"></td>
                                                 <td class="p-3 border text-gray-700" x-text="task.assignee"></td>
                                                 <td class="p-3 border font-mono text-xs" x-text="task.date"></td>

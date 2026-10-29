@@ -355,7 +355,7 @@
                     </div>
                 </div>
 
-                <!-- 2️⃣ تبويب التقارير والطباعة (المزامن بدقة تامة مع الصفوف) -->
+                <!-- 2️⃣ تبويب التقارير والطباعة -->
                 <div x-show="activeTab === 'reports'" class="space-y-6">
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-6">
                         <div class="flex flex-wrap justify-between items-center gap-4 border-b pb-4">
@@ -413,7 +413,7 @@
                                 </template>
                             </div>
 
-                            <!-- ملخص تحليل KPI المصغر للتقرير (مرتبط حصرياً بالجدول الظاهر) -->
+                            <!-- ملخص تحليل KPI المصغر للتقرير -->
                             <div class="bg-indigo-50/50 border border-indigo-100 rounded-xl p-4 flex flex-wrap justify-around items-center text-center gap-4">
                                 <div>
                                     <span class="text-xs text-gray-500 block">إجمالي المهام المعروضة</span>
@@ -673,7 +673,6 @@
                     return list;
                 },
 
-                // حساب نسبة الإنجاز للتقرير بناءً على الصفوف المعروضة فعلياً لضمان التطابق 100%
                 getReportCompletionRate() {
                     let list = this.getReportTasks();
                     if (list.length === 0) return 0;
@@ -871,7 +870,12 @@
                         title: 'إضافة مستخدم جديد',
                         html: '<input id="swal-user" class="swal2-input" placeholder="اسم المستخدم"><input id="swal-pass" type="password" class="swal2-input" placeholder="كلمة المرور"><input id="swal-pos" class="swal2-input" placeholder="المسمى الوظيفي (Position)"><select id="swal-role" class="swal2-input"><option value="user">موظف</option><option value="supervisor">مشرف</option><option value="admin">مدير/أدمن</option></select>',
                         focusConfirm: false, showCancelButton: true, confirmButtonText: 'إضافة', cancelButtonText: 'إلغاء',
-                        preConfirm: () => [document.getElementById('swal-user').value.trim(), document.getElementById('swal-pass').value.trim(), document.getElementById('swal-pos').value.trim(), document.getElementById('swal-role'].value]
+                        preConfirm: () => [
+                            document.getElementById('swal-user').value.trim(), 
+                            document.getElementById('swal-pass').value.trim(), 
+                            document.getElementById('swal-pos').value.trim(), 
+                            document.getElementById('swal-role').value
+                        ]
                     });
                     if (formValues) {
                         let [username, password, position, role] = formValues;
@@ -897,7 +901,7 @@
                     if (user.username === 'OMAR') { Swal.fire('خطأ', 'حساب OMAR محمي كلياً!', 'error'); return; }
                     if (confirm(`حذف المستخدم ${user.username}؟`)) {
                         this.usersList = this.usersList.filter(u => u.username !== user.username);
-                        await this.saveUsersCountDatabase = await this.saveUsersToDatabase();
+                        await this.saveUsersToDatabase();
                         Swal.fire('تم', 'تم الحذف', 'success');
                     }
                 },

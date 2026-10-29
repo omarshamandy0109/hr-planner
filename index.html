@@ -112,7 +112,7 @@
 
                 <!-- 1️⃣ تبويب المهام -->
                 <div x-show="activeTab === 'tasks'" class="space-y-6">
-                    <!-- الإحصائيات -->
+                    <!-- الإحصائيات (مرتبطة تماماً بالمهام المعروضة حالياً) -->
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
                             <div>
@@ -592,7 +592,6 @@
                     this.loadData();
                 },
 
-                // دالة تنقية وتنظيف كائن المهمة لمنع الأخطاء الإحصائية وتاريخ جوجل الممتد
                 formatTaskDate(rawDate) {
                     if (!rawDate) return new Date().toISOString().split('T')[0];
                     let d = new Date(rawDate);
@@ -648,6 +647,7 @@
                     return list;
                 },
 
+                // أصبحت الدالة تعتمد 100% على getFilteredTasks لضمان تطابق العداد مع الصفوف المعروضة بدقة
                 getPendingTasks() {
                     return this.getFilteredTasks().filter(t => t.status === 'pending');
                 },

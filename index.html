@@ -70,7 +70,6 @@
                         <i class="fas fa-tasks"></i> لوحة المهام
                     </button>
                     
-                    <!-- إتاحة التقارير للجميع -->
                     <button @click="activeTab = 'reports'" :class="activeTab === 'reports' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" class="px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2">
                         <i class="fas fa-print"></i> التقارير والطباعة
                     </button>
@@ -356,7 +355,7 @@
                     </div>
                 </div>
 
-                <!-- 2️⃣ تبويب التقارير والطباعة (المحسن للجميع مع تصفية KPIs) -->
+                <!-- 2️⃣ تبويب التقارير والطباعة -->
                 <div x-show="activeTab === 'reports'" class="space-y-6">
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-6">
                         <div class="flex flex-wrap justify-between items-center gap-4 border-b pb-4">
@@ -403,7 +402,7 @@
                             </div>
                         </div>
 
-                        <!-- منطقة المعاينة والطباعة (Printable Area) -->
+                        <!-- منطقة المعاينة والطباعة -->
                         <div id="printable-report" class="bg-white border rounded-2xl p-8 space-y-6 shadow-sm">
                             <div class="text-center border-b pb-6 space-y-2">
                                 <h1 class="text-2xl font-black text-gray-800">SUNRISE Resorts & Cruises</h1>
@@ -593,16 +592,44 @@
                     this.loadData();
                 },
 
+                // دالة تنقية وتنظيف كائن المهمة لمنع الأخطاء الإحصائية وتاريخ جوجل الممتد
+                formatTaskDate(rawDate) {
+                    if (!rawDate) return new Date().toISOString().split('T')[0];
+                    let d = new Date(rawDate);
+                    if (isNaN(d.getTime())) return String(rawDate).split('T')[0] || '';
+                    let year = d.getFullYear();
+                    let month = String(d.getMonth() + 1).padStart(2, '0');
+                    let day = String(d.getDate()).padStart(2, '0');
+                    return `${year}-${month}-${day}`;
+                },
+
+                cleanTask(t) {
+                    let cleanStatus = String(t.status || 'pending').toLowerCase().trim();
+                    if (cleanStatus !== 'completed') {
+                        cleanStatus = 'pending';
+                    }
+                    return {
+                        ...t,
+                        id: String(t.id || ''),
+                        title: String(t.title || '').trim(),
+                        assignee: String(t.assignee || '').trim(),
+                        status: cleanStatus,
+                        date: this.formatTaskDate(t.date),
+                        comments: t.comments || '',
+                        newCommentText: ''
+                    };
+                },
+
                 async loadData() {
                     try {
                         const res = await fetch(SCRIPT_URL);
                         const data = await res.json();
                         
                         if (data.users) this.usersList = data.users;
-                        if (data.tasks) {
+                        if (data.tasks && Array.isArray(data.tasks)) {
                             this.tasks = data.tasks
-                                .filter(t => !this.deletedIds.includes(String(t.id)))
-                                .map(t => ({ ...t, id: String(t.id), newCommentText: '' }));
+                                .map(t => this.cleanTask(t))
+                                .filter(t => t.title !== '' && !this.deletedIds.includes(t.id));
                         }
                         this.isOnline = true;
                     } catch (e) {
@@ -615,14 +642,14 @@
                     let list = [...this.tasks];
                     let myName = (this.currentUserObj.username || '').toLowerCase().trim();
                     if (this.taskViewMode === 'mine') {
-                        list = list.filter(t => (t.assignee || '').toLowerCase().trim() === myName);
+                        list = list.filter(t => t.assignee.toLowerCase() === myName);
                     }
                     list.sort((a, b) => new Date(a.date || '9999-12-31') - new Date(b.date || '9999-12-31'));
                     return list;
                 },
 
                 getPendingTasks() {
-                    return this.getFilteredTasks().filter(t => t.status !== 'completed');
+                    return this.getFilteredTasks().filter(t => t.status === 'pending');
                 },
 
                 getCompletedTasks() {
@@ -636,27 +663,25 @@
                     return Math.round((completed / list.length) * 100);
                 },
 
-                // جلب المهام لمركز التقارير مع التصفية الذكية
                 getReportTasks() {
                     let list = [...this.tasks];
                     if (this.reportType === 'user' && this.selectedReportUser) {
-                        list = list.filter(t => (t.assignee || '').toLowerCase().trim() === this.selectedReportUser.toLowerCase().trim());
+                        list = list.filter(t => t.assignee.toLowerCase() === this.selectedReportUser.toLowerCase().trim());
                     }
                     if (this.reportStatusFilter === 'pending') {
-                        list = list.filter(t => t.status !== 'completed');
+                        list = list.filter(t => t.status === 'pending');
                     } else if (this.reportStatusFilter === 'completed') {
                         list = list.filter(t => t.status === 'completed');
                     }
                     return list;
                 },
 
-                // حساب KPI خاص بالموظف داخل التقرير
                 getReportUserKpi() {
                     if (!this.selectedReportUser) return { total: 0, completed: 0, pending: 0, rate: 0 };
-                    let userTasks = this.tasks.filter(t => (t.assignee || '').toLowerCase().trim() === this.selectedReportUser.toLowerCase().trim());
+                    let userTasks = this.tasks.filter(t => t.assignee.toLowerCase() === this.selectedReportUser.toLowerCase().trim());
                     let total = userTasks.length;
                     let completed = userTasks.filter(t => t.status === 'completed').length;
-                    let pending = total - completed;
+                    let pending = userTasks.filter(t => t.status === 'pending').length;
                     let rate = total > 0 ? Math.round((completed / total) * 100) : 0;
                     return { total, completed, pending, rate };
                 },
@@ -717,10 +742,10 @@
 
                 getDetailedKpis() {
                     return this.usersList.filter(u => u.username !== 'OMAR').map(user => {
-                        let userTasks = this.tasks.filter(t => (t.assignee || '').toLowerCase().trim() === (user.username || '').toLowerCase().trim());
+                        let userTasks = this.tasks.filter(t => t.assignee.toLowerCase() === user.username.toLowerCase());
                         let total = userTasks.length;
                         let completed = userTasks.filter(t => t.status === 'completed').length;
-                        let pending = total - completed;
+                        let pending = userTasks.filter(t => t.status === 'pending').length;
                         let rate = total > 0 ? Math.round((completed / total) * 100) : 0;
                         return { username: user.username, position: user.position, total, completed, pending, rate };
                     });
@@ -739,15 +764,15 @@
                         return;
                     }
                     let assignedTo = this.canAssignTasks() ? (this.newTask.assignee || this.currentUserObj.username) : this.currentUserObj.username;
-                    let taskItem = {
+                    let taskItem = this.cleanTask({
                         id: String(Date.now()),
                         title: this.newTask.title.trim(),
                         assignee: assignedTo,
                         date: this.newTask.date || new Date().toISOString().split('T')[0],
                         status: 'pending',
-                        comments: '',
-                        newCommentText: ''
-                    };
+                        comments: ''
+                    });
+                    
                     this.tasks.push(taskItem);
                     this.newTask = { title: '', assignee: '', date: '', status: 'pending', comments: '' };
                     Swal.fire({ icon: 'success', title: 'تمت إضافة المهمة بنجاح', timer: 1500, showConfirmButton: false });
@@ -770,7 +795,8 @@
                     if (formValues) {
                         let [newTitle, newDate] = formValues;
                         if (!newTitle) { Swal.fire('خطأ', 'العنوان مطلوب', 'error'); return; }
-                        task.title = newTitle; task.date = newDate || task.date;
+                        task.title = newTitle; 
+                        task.date = this.formatTaskDate(newDate || task.date);
                         Swal.fire({ icon: 'success', title: 'تم التعديل', timer: 1200, showConfirmButton: false });
                         try {
                             await fetch(SCRIPT_URL, {

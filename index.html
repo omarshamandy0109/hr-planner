@@ -413,7 +413,7 @@
                                 </template>
                             </div>
 
-                            <!-- ملخص تحليل KPI المصغر للتقرير (مرتبط 100% بالجدول الظاهر) -->
+                            <!-- ملخص تحليل KPI المصغر للتقرير (ربط حاسم 100% بالصفوف المعروضة تحت) -->
                             <div class="bg-indigo-50/50 border border-indigo-100 rounded-xl p-4 flex flex-wrap justify-around items-center text-center gap-4">
                                 <div>
                                     <span class="text-xs text-gray-500 block">إجمالي المهام المعروضة</span>
@@ -436,7 +436,7 @@
                                 </div>
                             </div>
 
-                            <!-- جدول مهام التقرير (مع ترقيم تسلسلي يبدأ من 1 تصاعدياً) -->
+                            <!-- جدول مهام التقرير (ترقيم نظيف متسلسل 1, 2, 3...) -->
                             <div class="overflow-x-auto">
                                 <table class="w-full text-right border-collapse border border-gray-200">
                                     <thead>
@@ -626,7 +626,7 @@
                         if (data.tasks && Array.isArray(data.tasks)) {
                             this.tasks = data.tasks
                                 .map(t => this.cleanTask(t))
-                                .filter(t => t.title !== '' && !this.deletedIds.includes(t.id));
+                                .filter(t => t.title !== '' && t.assignee !== '' && !this.deletedIds.includes(t.id));
                         }
                         this.isOnline = true;
                     } catch (e) {
@@ -663,7 +663,8 @@
                 getReportTasks() {
                     let list = [...this.tasks];
                     if (this.reportType === 'user' && this.selectedReportUser) {
-                        list = list.filter(t => t.assignee.toLowerCase() === this.selectedReportUser.toLowerCase().trim());
+                        let targetUser = this.selectedReportUser.toLowerCase().trim();
+                        list = list.filter(t => t.assignee.toLowerCase() === targetUser);
                     }
                     if (this.reportStatusFilter === 'pending') {
                         list = list.filter(t => t.status === 'pending');

@@ -273,7 +273,7 @@
                         </template>
                     </div>
 
-                    <!-- المهام المكتملة والمؤرشفة (تم ضبطها لتظهر بدقة وبشكل صحيح) -->
+                    <!-- المهام المكتملة والمؤرشفة -->
                     <div class="space-y-4 pt-4 border-t border-gray-200">
                         <h3 class="text-sm font-bold text-emerald-700 flex items-center gap-2">
                             <i class="fas fa-check-circle"></i> سجل المهام المكتملة والمؤرشفة ( <span x-text="getCompletedTasks().length"></span> )
@@ -445,10 +445,56 @@
                     </div>
                 </div>
 
-                <!-- 4️⃣ تبويب إدارة المستخدمين -->
+                <!-- 4️⃣ تبويب إدارة المستخدمين (تم إصلاحه وإعادته كاملاً بالأسفل) -->
                 <div x-show="activeTab === 'users' && currentUserObj.role === 'admin'" class="space-y-6">
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                        <h2 class="text-lg font-bold text-gray-800">إدارة المستخدمين والصلاحيات</h2>
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-lg font-bold text-gray-800">إدارة المستخدمين والصلاحيات والبوزشنات الوظيفية</h2>
+                            <p class="text-xs text-gray-500">حساب OMAR محمي كلياً ولا يمكن تعديله أو حذفه إلا من خلاله شخصياً</p>
+                        </div>
+                        <button @click="openAddUserModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2.5 rounded-xl transition shadow-md flex items-center gap-2">
+                            <i class="fas fa-user-plus"></i> إضافة مستخدم جديد
+                        </button>
+                    </div>
+
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <table class="w-full text-right border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50 text-gray-600 text-sm border-b">
+                                    <th class="p-4">اسم المستخدم</th>
+                                    <th class="p-4">كلمة المرور</th>
+                                    <th class="p-4">المسمى الوظيفي (Position)</th>
+                                    <th class="p-4">الصلاحية (Role)</th>
+                                    <th class="p-4 text-center">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                <template x-for="(user, uIdx) in usersList" :key="user.username">
+                                    <tr class="hover:bg-gray-50/50 transition">
+                                        <td class="p-4 font-bold text-gray-800" x-text="user.username"></td>
+                                        <td class="p-4 text-gray-500 font-mono text-sm" x-text="user.username === 'OMAR' && currentUserObj.username !== 'OMAR' ? '••••••' : user.password"></td>
+                                        <td class="p-4">
+                                            <input type="text" x-model="user.position" @change="saveUsersToDatabase()" class="px-3 py-1.5 border rounded-lg text-xs font-bold bg-gray-50 outline-none" :disabled="user.username === 'OMAR' && currentUserObj.username !== 'OMAR'">
+                                        </td>
+                                        <td class="p-4">
+                                            <select x-model="user.role" @change="saveUsersToDatabase()" class="px-3 py-1.5 border rounded-lg text-xs font-bold bg-gray-50 outline-none" :disabled="user.username === 'OMAR'">
+                                                <option value="admin">مدير / Admin</option>
+                                                <option value="supervisor">مشرف / Supervisor</option>
+                                                <option value="user">موظف / User</option>
+                                            </select>
+                                        </td>
+                                        <td class="p-4 text-center space-x-2 space-x-reverse">
+                                            <template x-if="user.username !== 'OMAR' || currentUserObj.username === 'OMAR'">
+                                                <button @click="editUserPassword(user)" class="bg-amber-50 text-amber-600 hover:bg-amber-100 px-3 py-1.5 rounded-lg text-xs font-bold transition">تعديل الباسورد</button>
+                                            </template>
+                                            <template x-if="user.username !== 'OMAR' && user.username !== currentUserObj.username">
+                                                <button @click="deleteUser(user)" class="bg-red-50 text-red-600 hover:bg-red-100 px-2.5 py-1.5 rounded-lg text-xs font-bold transition">حذف</button>
+                                            </template>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -539,7 +585,6 @@
                     return this.getFilteredTasks().filter(t => t.status === 'pending');
                 },
 
-                // الدالة المحدثة التي تبحث بداخل المهام المصفاة لتظهر المكتملة والمؤرشفة فوراً
                 getCompletedTasks() {
                     return this.getFilteredTasks().filter(t => t.status === 'completed');
                 },
@@ -668,11 +713,65 @@
                     } catch (e) { console.error(e); }
                 },
 
+                async saveUsersToDatabase() {
+                    try {
+                        await fetch(SCRIPT_URL, {
+                            method: 'POST', mode: 'no-cors',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ action: 'save_users', users: this.usersList })
+                        });
+                    } catch(e) { console.error(e); }
+                },
+
+                async openAddUserModal() {
+                    const { value: formValues } = await Swal.fire({
+                        title: 'إضافة مستخدم جديد',
+                        html: '<input id="swal-user" class="swal2-input" placeholder="اسم المستخدم"><input id="swal-pass" type="password" class="swal2-input" placeholder="كلمة المرور"><input id="swal-pos" class="swal2-input" placeholder="المسمى الوظيفي"><select id="swal-role" class="swal2-input"><option value="user">موظف</option><option value="supervisor">مشرف</option><option value="admin">مدير/أدمن</option></select>',
+                        focusConfirm: false, showCancelButton: true, confirmButtonText: 'إضافة', cancelButtonText: 'إلغاء',
+                        preConfirm: () => [
+                            document.getElementById('swal-user').value.trim(), 
+                            document.getElementById('swal-pass').value.trim(), 
+                            document.getElementById('swal-pos').value.trim(), 
+                            document.getElementById('swal-role').value
+                        ]
+                    });
+                    if (formValues) {
+                        let [username, password, position, role] = formValues;
+                        if (!username || !password) { Swal.fire('خطأ', 'أدخل البيانات الأساسية', 'error'); return; }
+                        if (this.usersList.some(u => u.username.toLowerCase() === username.toLowerCase())) { Swal.fire('خطأ', 'المستخدم موجود بالفعل', 'error'); return; }
+                        this.usersList.push({ username, password, role, position: position || 'موظف' });
+                        await this.saveUsersToDatabase();
+                        Swal.fire('تم بنجاح', `تم إضافة المستخدم (${username})`, 'success');
+                    }
+                },
+
+                async editUserPassword(user) {
+                    if (user.username === 'OMAR' && this.currentUserObj.username !== 'OMAR') { Swal.fire('خطأ', 'محمي!', 'error'); return; }
+                    const { value: newPass } = await Swal.fire({ title: `تعديل كلمة مرور (${user.username})`, input: 'password', showCancelButton: true, confirmButtonText: 'حفظ', cancelButtonText: 'إلغاء' });
+                    if (newPass) {
+                        user.password = newPass.trim();
+                        await this.saveUsersToDatabase();
+                        Swal.fire('تم', 'تم التحديث', 'success');
+                    }
+                },
+
+                async deleteUser(user) {
+                    if (user.username === 'OMAR') { Swal.fire('خطأ', 'حساب OMAR محمي كلياً!', 'error'); return; }
+                    if (confirm(`حذف المستخدم ${user.username}؟`)) {
+                        this.usersList = this.usersList.filter(u => u.username !== user.username);
+                        await this.saveUsersToDatabase();
+                        Swal.fire('تم', 'تم الحذف', 'success');
+                    }
+                },
+
                 async openChangePasswordModal() {
-                    const { value: res } = await Swal.fire({ title: 'تغيير كلمة المرور', input: 'password', showCancelButton: true });
+                    const { value: res } = await Swal.fire({ title: 'تغيير كلمة المرور الخاصة بك', input: 'password', showCancelButton: true, confirmButtonText: 'تغيير', cancelButtonText: 'إلغاء' });
                     if (res) {
                         this.currentUserObj.password = res.trim();
-                        Swal.fire('تم التغيير', '', 'success');
+                        let found = this.usersList.find(u => u.username === this.currentUserObj.username);
+                        if (found) found.password = res.trim();
+                        await this.saveUsersToDatabase();
+                        Swal.fire('تم بنجاح', 'تم تغيير كلمة المرور', 'success');
                     }
                 }
             }

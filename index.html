@@ -474,14 +474,14 @@
                     return cleanDate === todayStr;
                 },
 
-                // الترتيب الصحيح للأعمدة بناءً على شيت جوجل الخاص بك: id, title, assignee, date, status, comments
+                // الربط البرمجي الصحيح 100% مع الباك إند: [id, title, assignee, status, date, comments]
                 cleanTask(t) {
                     return {
                         id: String(t.id || ''),
                         title: String(t.title || '').trim(),
                         assignee: String(t.assignee || '').trim(),
-                        date: this.formatTaskDate(t.date),
                         status: String(t.status || 'pending').toLowerCase().trim(),
+                        date: this.formatTaskDate(t.date),
                         comments: t.comments || '',
                         newCommentText: ''
                     };
@@ -587,8 +587,8 @@
                         id: String(Date.now()),
                         title: this.newTask.title.trim(),
                         assignee: assignedTo,
-                        date: this.newTask.date || new Date().toISOString().split('T')[0],
                         status: 'pending',
+                        date: this.newTask.date || new Date().toISOString().split('T')[0],
                         comments: ''
                     });
                     this.tasks.unshift(taskItem);
@@ -722,7 +722,7 @@
                     if (user.username === 'OMAR') return;
                     if (confirm('حذف المستخدم؟')) {
                         this.usersList = this.usersList.filter(u => u.username !== user.username);
-                        await this.saveUsersToDatabase();
+                        await this.saveUsers,this.saveUsersToDatabase();
                         Swal.fire('تم', 'تم الحذف', 'success');
                     }
                 },

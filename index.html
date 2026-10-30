@@ -198,7 +198,7 @@
 
                         <template x-if="displayMode === 'grid'">
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                <template x-for="(task, index) in getPendingTasks()" :key="task.id || index">
+                                <template x-for="(task, index) in getPendingTasks()" :key="'pending-grid-' + index">
                                     <div class="bg-white border rounded-2xl p-5 shadow-sm space-y-4 relative flex flex-col justify-between">
                                         <div class="space-y-2 pr-2 pt-2">
                                             <h4 class="font-bold text-lg leading-snug text-gray-800" x-text="task.title"></h4>
@@ -235,7 +235,7 @@
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-gray-100 text-sm">
-                                        <template x-for="(task, index) in getPendingTasks()" :key="task.id || index">
+                                        <template x-for="(task, index) in getPendingTasks()" :key="'pending-list-' + index">
                                             <tr class="hover:bg-gray-50/50 transition">
                                                 <td class="p-4 text-center font-bold text-indigo-600" x-text="index + 1"></td>
                                                 <td class="p-4 font-bold" x-text="task.title"></td>
@@ -323,7 +323,7 @@
                                 </div>
                             </div>
 
-                            <!-- جدول مهام التقرير بترقيم تسلسلي صريح يقرأ serialNumber المباشر -->
+                            <!-- جدول مهام التقرير بترقيم تسلسلي صريح يعتمد على الـ index الإجباري -->
                             <div class="overflow-x-auto">
                                 <table class="w-full text-right border-collapse border border-gray-200">
                                     <thead>
@@ -336,10 +336,10 @@
                                         </tr>
                                     </thead>
                                     <tbody class="text-sm divide-y">
-                                        <template x-for="task in getReportTasks()" :key="task.id || task.serialNumber">
+                                        <template x-for="(task, index) in getReportTasks()" :key="'report-row-' + index">
                                             <tr>
-                                                <!-- يعرض الترقيم المسلسل الذي يبدأ دائماً بـ 1 -->
-                                                <td class="p-3 border text-center font-mono font-bold text-indigo-600" x-text="task.serialNumber"></td>
+                                                <!-- يعتمد حصرياً على index + 1 لضمان البدء من 1 دائماً وبدون أخطاء -->
+                                                <td class="p-3 border text-center font-mono font-bold text-indigo-600" x-text="index + 1"></td>
                                                 <td class="p-3 border font-bold" x-text="task.title"></td>
                                                 <td class="p-3 border text-gray-700" x-text="task.assignee"></td>
                                                 <td class="p-3 border font-mono text-xs" x-text="task.date"></td>
@@ -486,17 +486,14 @@
                     return Math.round((completed / list.length) * 100);
                 },
 
-                // التقرير الموحد مع ترقيم محلي إجباري serialNumber يبدأ من 1 بانتظام تام
+                // التقرير الموحد المصفي بدقة تامة وبدون أي تعقيد
                 getReportTasks() {
                     let list = [...this.tasks];
                     if (this.reportType === 'user' && this.selectedReportUser) {
                         let targetUser = this.selectedReportUser.toLowerCase().trim();
                         list = list.filter(t => t.assignee.toLowerCase() === targetUser);
                     }
-                    return list.map((item, idx) => ({
-                        ...item,
-                        serialNumber: idx + 1
-                    }));
+                    return list;
                 },
 
                 getReportCompletionRate() {

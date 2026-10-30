@@ -640,7 +640,7 @@
                 taskViewMode: 'mine',
                 displayMode: 'list',
                 taskSearch: '',
-                connection: 'connecting', // connecting | online | offline
+                connection: 'connecting',
                 isSyncing: false,
                 saving: false,
                 tasks: [],
@@ -662,7 +662,6 @@
                 },
                 todayStr() { return this.localDateStr(new Date()); },
 
-                // تحويل أي صيغة تاريخ قادمة من الشيت إلى YYYY-MM-DD بدون إزاحة يوم بسبب المنطقة الزمنية
                 formatTaskDate(raw) {
                     if (raw === null || raw === undefined) return '';
                     let s = String(raw).trim();
@@ -715,11 +714,10 @@
                     return this.isOverdue(t) ? 'متأخرة' : 'جارية';
                 },
 
-                // ---------- تنظيف بيانات الشيت ----------
+                // ---------- تنظيف البيانات ----------
                 cleanTask(t) {
                     let rawStatus = String(t.status ?? '').toLowerCase().trim();
                     let rawDate = String(t.date ?? '').trim();
-                    // حماية لو الأعمدة مقلوبة
                     if (/completed|pending/i.test(rawDate)) {
                         const tmp = rawDate; rawDate = rawStatus; rawStatus = tmp.toLowerCase();
                     }
@@ -746,7 +744,7 @@
                     };
                 },
 
-                // ---------- تحميل البيانات ----------
+                // ---------- التحميل والمزامنة ----------
                 async loadData() {
                     try {
                         const url = SCRIPT_URL + (SCRIPT_URL.includes('?') ? '&' : '?') + 't=' + Date.now();
@@ -764,7 +762,6 @@
                             .filter(t => t.title !== '')
                             .map(t => { if (drafts[t.id]) t.newCommentText = drafts[t.id]; return t; });
 
-                        // تحديث بيانات المستخدم الحالي (لو اتغيرت صلاحياته)
                         if (this.isLoggedIn) {
                             const me = this.usersList.find(u => u.username.toLowerCase() === this.currentUserObj.username.toLowerCase());
                             if (me) this.currentUserObj = { ...me };
@@ -788,7 +785,6 @@
                     }
                 },
 
-                // إرسال أمر للسكريبت (no-cors لا يسمح بقراءة الرد، لذلك نعيد التحميل بعد الحفظ للتأكد)
                 async post(payload) {
                     try {
                         await fetch(SCRIPT_URL, {
@@ -811,7 +807,6 @@
                     if (this.loggingIn) return;
                     this.loginError = false;
                     this.loggingIn = true;
-                    // دائماً نجلب أحدث المستخدمين قبل التحقق
                     await this.loadData();
                     this.loggingIn = false;
 
@@ -855,7 +850,7 @@
                     return this.usersList.filter(u => u.username.toLowerCase() !== 'omar');
                 },
 
-                // ---------- قوائم المهام والترتيب ----------
+                // ---------- المهام والترتيب ----------
                 matchSearch(t) {
                     const q = this.taskSearch.trim().toLowerCase();
                     if (!q) return true;
@@ -868,7 +863,6 @@
                         return this.matchSearch(t);
                     });
                 },
-                // الجارية: المتأخرة (الأقدم أولاً) ← اليوم ← القادمة بالأقرب ← بدون تاريخ
                 getPendingTasks() {
                     return this.getFilteredTasks()
                         .filter(t => t.status === 'pending')
@@ -878,7 +872,6 @@
                             return a.assignee.localeCompare(b.assignee) || a.title.localeCompare(b.title, 'ar');
                         });
                 },
-                // المكتملة: الأحدث أولاً
                 getCompletedTasks() {
                     return this.getFilteredTasks()
                         .filter(t => t.status === 'completed')
@@ -962,7 +955,7 @@
                     const y = now.getFullYear(), m = now.getMonth();
                     if (p === 'all') { this.rf.from = ''; this.rf.to = ''; }
                     else if (p === 'today') { this.rf.from = this.rf.to = this.todayStr(); }
-                    else if (p === 'week') { // الأسبوع يبدأ السبت
+                    else if (p === 'week') {
                         const offset = (now.getDay() + 1) % 7;
                         const start = new Date(y, m, now.getDate() - offset);
                         const end = new Date(y, m, now.getDate() - offset + 6);
@@ -1160,7 +1153,6 @@
                     if (ok) this.toast('success', 'تمت إضافة المستخدم');
                 },
 
-                // التعديل المطلوب: تعديل بيانات المستخدم (كلمة المرور، المسمى الوظيفي، والصلاحية)
                 async openEditUserModal(user) {
                     const { value: vals } = await Swal.fire({
                         title: `تعديل المستخدم: ${user.username}`,

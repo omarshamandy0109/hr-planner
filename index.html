@@ -474,13 +474,14 @@
                     return cleanDate === todayStr;
                 },
 
+                // التوافق التام والمطابق بنسبة 100% مع ترتيب أعمدة الـ Apps Script (id, title, assignee, date, status, comments)
                 cleanTask(t) {
                     return {
                         id: String(t.id || ''),
                         title: String(t.title || '').trim(),
                         assignee: String(t.assignee || '').trim(),
-                        status: String(t.status || 'pending').toLowerCase().trim(),
                         date: this.formatTaskDate(t.date),
+                        status: String(t.status || 'pending').toLowerCase().trim(),
                         comments: t.comments || '',
                         newCommentText: ''
                     };
@@ -501,7 +502,6 @@
                         }
 
                         if (data.tasks && Array.isArray(data.tasks)) {
-                            // التوافق التام مع ترتيب أعمدة شيت جوجل الخاص بك: id, title, assignee, date, status, comments
                             this.tasks = data.tasks.map(t => this.cleanTask(t)).filter(t => t.title !== '');
                         }
                         this.isOnline = true;
@@ -703,7 +703,7 @@
                         title: 'إضافة مستخدم',
                         html: '<input id="u" class="swal2-input" placeholder="اسم المستخدم"><input id="p" type="password" class="swal2-input" placeholder="كلمة المرور"><input id="pos" class="swal2-input" placeholder="المسمى الوظيفي">',
                         focusConfirm: false, showCancelButton: true,
-                        preConfirm: () => [document.getElementById('u').value.trim(), document.getElementById('p').value.trim(), document.getElementById('pos').value.trim()]
+                        preConfirm: () => [document.getElementById('u').value.trim(), document.getElementById('p').value.trim(), document.getElementById('pos'].value.trim()]
                     });
                     if (vals) {
                         let [username, password, position] = vals;

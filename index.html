@@ -193,10 +193,10 @@
                     <!-- المهام الجارية -->
                     <div class="space-y-4">
                         <h3 class="text-sm font-bold text-amber-700 flex items-center gap-2">
-                            <i class="fas fa-hourglass-half"></i> المهام الجارية وقيد التنفيذ ( مرتبة حسب تاريخ الاستحقاق 📅 ) ( <span x-text="getPendingTasks().length"></span> )
+                            <i class="fas fa-hourglass-half"></i> المهام الجارية وقيد التنفيذ ( مرتبة ذكياً حسب المتبقي ⏱️ ) ( <span x-text="getPendingTasks().length"></span> )
                         </h3>
 
-                        <!-- عرض كروت (المهمة تتلون كلها بالأحمر في يوم استحقاقها) -->
+                        <!-- عرض كروت -->
                         <template x-if="displayMode === 'grid'">
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 <template x-for="(task, index) in getPendingTasks()" :key="'pending-grid-' + (task.id || index)">
@@ -214,12 +214,12 @@
                                             <div class="flex justify-between items-start gap-2">
                                                 <h4 class="font-bold text-lg leading-snug text-gray-800" x-text="task.title"></h4>
                                                 
-                                                <!-- مكان زر التعديل القديم أصبح الآن تاريخ النهاية الواضح بشياكة -->
+                                                <!-- مؤشر العد التنازلي الذكي (بدلاً من التاريخ المجرد) -->
                                                 <div class="text-left">
-                                                    <span class="text-[10px] text-gray-400 block">تاريخ النهاية</span>
-                                                    <span class="text-xs font-mono font-bold px-2.5 py-1 rounded-lg inline-block"
-                                                          :class="isToday(task.date) ? 'bg-red-600 text-white font-black' : 'bg-blue-50 text-blue-700 border border-blue-100'"
-                                                          x-text="task.date"></span>
+                                                    <span class="text-[10px] text-gray-400 block">حالة التوقيت</span>
+                                                    <span class="text-xs font-bold px-2.5 py-1 rounded-lg inline-block shadow-2xs"
+                                                          :class="getSmartTimeBadge(task.date).classes"
+                                                          x-text="getSmartTimeBadge(task.date).text"></span>
                                                 </div>
                                             </div>
 
@@ -228,7 +228,7 @@
                                                 <span>المسؤول: <strong class="text-gray-700" x-text="task.assignee"></strong></span>
                                             </div>
 
-                                            <!-- زر مسح المهمة (متاح لحساب OMAR فقط في الأعلى) -->
+                                            <!-- زر مسح المهمة (متاح لحساب OMAR فقط) -->
                                             <template x-if="currentUserObj.username === 'OMAR'">
                                                 <div class="pt-1">
                                                     <button @click="deleteTask(task)" class="text-red-500 hover:text-red-700 text-xs font-bold transition flex items-center gap-1">
@@ -255,13 +255,12 @@
                                             </div>
                                         </div>
 
-                                        <!-- أزرار الإجراءات في الأسفل (إتمام المهمة + زر التعديل الجديد) -->
+                                        <!-- أزرار الإجراءات في الأسفل (إتمام المهمة + زر التعديل) -->
                                         <div class="pt-3 border-t border-gray-100 flex items-center gap-2">
                                             <button @click="markAsCompleted(task)" class="flex-1 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1">
                                                 <i class="fas fa-check"></i> إتمام المهمة
                                             </button>
                                             
-                                            <!-- زر التعديل انتقل إلى الأسفل بذكاء -->
                                             <template x-if="currentUserObj.username === 'OMAR' || currentUserObj.username.toLowerCase() === task.assignee.toLowerCase()">
                                                 <button @click="editTaskModal(task)" class="bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1" title="تعديل المهمة وتاريخها">
                                                     <i class="fas fa-edit"></i> تعديل
@@ -282,7 +281,7 @@
                                             <th class="p-4 text-center">#</th>
                                             <th class="p-4">عنوان المهمة</th>
                                             <th class="p-4">المسؤول عنها</th>
-                                            <th class="p-4">تاريخ الاستحقاق</th>
+                                            <th class="p-4">توقيت الاستحقاق (العد التنازلي)</th>
                                             <th class="p-4">الحالة</th>
                                             <th class="p-4 text-center">الإجراءات</th>
                                         </tr>
@@ -300,7 +299,11 @@
                                                     </template>
                                                 </td>
                                                 <td class="p-4 text-gray-700" x-text="task.assignee"></td>
-                                                <td class="p-4 font-mono text-xs" :class="isToday(task.date) ? 'text-red-600 font-black' : 'text-gray-600'" x-text="task.date"></td>
+                                                <td class="p-4">
+                                                    <span class="text-xs font-bold px-2.5 py-1 rounded-lg inline-block"
+                                                          :class="getSmartTimeBadge(task.date).classes"
+                                                          x-text="getSmartTimeBadge(task.date).text"></span>
+                                                </td>
                                                 <td class="p-4"><span class="text-xs px-2.5 py-1 rounded-full font-bold bg-amber-100 text-amber-800">جارية ⏳</span></td>
                                                 <td class="p-4 text-center space-x-2 space-x-reverse">
                                                     <button @click="markAsCompleted(task)" class="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-3 py-1.5 rounded-lg text-xs font-bold transition">إتمام</button>
@@ -601,6 +604,33 @@
                     return dateStr === todayStr;
                 },
 
+                // 🧠 نظام العد التنازلي والتنبيه الذكي باللغة الطبيعية
+                getSmartTimeBadge(dateStr) {
+                    if (!dateStr) return { text: 'غير محدد', classes: 'bg-gray-100 text-gray-700' };
+                    
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    const target = new Date(dateStr);
+                    target.setHours(0, 0, 0, 0);
+
+                    const diffTime = target - today;
+                    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+                    if (diffDays === 0) {
+                        return { text: 'مستحقة اليوم 🔥', classes: 'bg-red-600 text-white animate-pulse' };
+                    } else if (diffDays === 1) {
+                        return { text: 'باقي يوم واحد ⚠️', classes: 'bg-amber-500 text-white' };
+                    } else if (diffDays === 2) {
+                        return { text: 'باقي يومين ⏳', classes: 'bg-amber-100 text-amber-800' };
+                    } else if (diffDays > 2) {
+                        return { text: `باقي ${diffDays} أيام 📅`, classes: 'bg-blue-50 text-blue-700 border border-blue-100' };
+                    } else {
+                        const pastDays = Math.abs(diffDays);
+                        return { text: `متأخرة ${pastDays} أيام ❌`, classes: 'bg-red-100 text-red-800 font-black' };
+                    }
+                },
+
                 cleanTask(t) {
                     let cleanStatus = String(t.status || 'pending').toLowerCase().trim();
                     if (this.completedLocalIds.includes(String(t.id))) {
@@ -649,7 +679,7 @@
                     }
                 },
 
-                // الترتيب الذكي: مهام اليوم تظهر في القمة دائماً، يليه باقي المهام تصاعدياً حسب تاريخ النهاية الأقرب
+                // الترتيب الذكي: مهام اليوم في قمة القمة، ثم المهام الأقرب فالأبعد
                 sortTasksByDate(list) {
                     return list.sort((a, b) => {
                         let aIsToday = this.isToday(a.date);
@@ -773,7 +803,6 @@
                     } catch (e) { console.error(e); }
                 },
 
-                // نافذة تعديل المهمة في الأسفل
                 async editTaskModal(task) {
                     const { value: formValues } = await Swal.fire({
                         title: 'تعديل بيانات المهمة',

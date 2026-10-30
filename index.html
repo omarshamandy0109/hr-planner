@@ -337,9 +337,17 @@
                             <div>
                                 <h2 class="text-lg font-bold text-gray-800">مركز تقارير منظومة HR والطباعة</h2>
                             </div>
-                            <button @click="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl transition shadow-md flex items-center gap-2">
-                                <i class="fas fa-print"></i> طباعة التقرير الحالي
-                            </button>
+                            <div class="flex items-center gap-3">
+                                <select x-model="reportFilterUser" class="px-4 py-2 border rounded-xl bg-white text-sm outline-none">
+                                    <option value="">كل المستخدمين</option>
+                                    <template x-for="user in usersList" :key="user.username">
+                                        <option :value="user.username" x-text="user.username"></option>
+                                    </template>
+                                </select>
+                                <button @click="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl transition shadow-md flex items-center gap-2">
+                                    <i class="fas fa-print"></i> طباعة التقرير
+                                </button>
+                            </div>
                         </div>
                         <div id="printable-report" class="bg-white border rounded-2xl p-8 space-y-6 shadow-sm">
                             <div class="text-center border-b pb-6 space-y-2">
@@ -358,7 +366,7 @@
                                         </tr>
                                     </thead>
                                     <tbody class="text-sm divide-y">
-                                        <template x-for="(task, index) in tasks" :key="'report-row-' + (task.id || index)">
+                                        <template x-for="(task, index) in getReportTasks()" :key="'report-row-' + (task.id || index)">
                                             <tr>
                                                 <td class="p-3 border text-center font-mono font-bold text-indigo-600" x-text="index + 1"></td>
                                                 <td class="p-3 border font-bold" x-text="task.title"></td>
@@ -392,6 +400,10 @@
                                             <span class="text-xs px-2 py-0.5 rounded-full font-bold bg-blue-100 text-blue-700" x-text="kpi.position"></span>
                                         </div>
                                         <span class="text-2xl font-black text-indigo-600" x-text="kpi.rate + '%'"></span>
+                                    </div>
+                                    <div class="text-xs text-gray-500 flex justify-between pt-2 border-t">
+                                        <span>إجمالي المهام: <strong class="text-gray-700" x-text="kpi.total"></strong></span>
+                                        <span>المنجزة: <strong class="text-emerald-600" x-text="kpi.completed"></strong></span>
                                     </div>
                                 </div>
                             </template>
@@ -454,6 +466,7 @@
                 isSyncing: false,
                 tasks: [],
                 usersList: [],
+                reportFilterUser: '',
                 newTask: { title: '', assignee: '', date: '', status: 'pending', comments: '' },
 
                 init() {
@@ -474,13 +487,26 @@
                     return cleanDate === todayStr;
                 },
 
+                // فحص دقيق ومطابق لعمود التاريخ والحالة في الشيت (التاريخ عمود 4، الحالة عمود 5)
                 cleanTask(t) {
+                    let rawStatus = String(t.status || '').toLowerCase().trim();
+                    let rawDate = String(t.date || '').trim();
+                    
+                    // تصحيح عكس الأعمدة الاحترازي إذا كان الشيت مقلوباً
+                    let finalDate = rawDate;
+                    let finalStatus = rawStatus;
+
+                    if (rawDate.includes('completed') || rawDate.includes('pending')) {
+                        finalStatus = rawDate;
+                        finalDate = rawStatus;
+                    }
+
                     return {
                         id: String(t.id || ''),
                         title: String(t.title || '').trim(),
                         assignee: String(t.assignee || '').trim(),
-                        date: this.formatTaskDate(t.date),
-                        status: String(t.status || 'pending').toLowerCase().trim(),
+                        date: this.formatTaskDate(finalDate),
+                        status: finalStatus.includes('comple') ? 'completed' : 'pending',
                         comments: t.comments || '',
                         newCommentText: ''
                     };
@@ -534,6 +560,14 @@
                     return Math.round((completed / list.length) * 100);
                 },
 
+                getReportTasks() {
+                    let list = [...this.tasks];
+                    if (this.reportFilterUser) {
+                        list = list.filter(t => t.assignee.toLowerCase() === this.reportFilterUser.toLowerCase());
+                    }
+                    return list;
+                },
+
                 handleLogin() {
                     let u = this.loginUser.trim();
                     let p = this.loginPass.trim();
@@ -582,21 +616,22 @@
                 async addTask() {
                     if (!this.newTask.title.trim()) return;
                     let assignedTo = this.canAssignTasks() ? (this.newTask.assignee || this.currentUserObj.username) : this.currentUserObj.username;
-                    let taskItem = this.cleanTask({
+                    let taskItem = {
                         id: String(Date.now()),
                         title: this.newTask.title.trim(),
                         assignee: assignedTo,
                         date: this.newTask.date || new Date().toISOString().split('T')[0],
                         status: 'pending',
                         comments: ''
-                    });
-                    this.tasks.unshift(taskItem);
+                    };
+                    let cleaned = this.cleanTask(taskItem);
+                    this.tasks.unshift(cleaned);
                     this.newTask = { title: '', assignee: '', date: '', status: 'pending', comments: '' };
                     try {
                         await fetch(SCRIPT_URL, {
                             method: 'POST', mode: 'no-cors',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ action: 'add_task', task: taskItem })
+                            body: JSON.stringify({ action: 'add_task', task: cleaned })
                         });
                     } catch (e) { console.error(e); }
                 },
@@ -705,7 +740,7 @@
                         preConfirm: () => [
                             document.getElementById('u').value.trim(), 
                             document.getElementById('p').value.trim(), 
-                            document.getElementById('pos').value.trim()
+                            document.getElementById('pos'].value.trim()
                         ]
                     });
                     if (vals) {

@@ -260,15 +260,15 @@
                         <div class="flex flex-wrap justify-between items-center gap-4 border-b pb-4">
                             <div>
                                 <h2 class="text-lg font-bold text-gray-800">مركز تقارير منظومة HR والطباعة</h2>
-                                <p class="text-xs text-gray-500">اختر تصنيف المهام، الموظف، واستعراض تحليل الأداء في التقرير</p>
+                                <p class="text-xs text-gray-500">اختر تصنيف المهام، الموظف، وحالة المهام لاستعراض التقرير</p>
                             </div>
                             <button @click="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl transition shadow-md flex items-center gap-2">
                                 <i class="fas fa-print"></i> طباعة التقرير الحالي
                             </button>
                         </div>
 
-                        <!-- خيارات الفلترة المتقدمة للتقرير -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border">
+                        <!-- خيارات الفلترة المتقدمة للتقرير (تم إضافة فلتر حالة المهمة هنا) -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border">
                             <div>
                                 <label class="block text-sm font-bold text-gray-700 mb-2">نوع التقرير</label>
                                 <select x-model="reportType" class="w-full px-4 py-2.5 border rounded-xl bg-white outline-none font-medium">
@@ -288,6 +288,15 @@
                                     </select>
                                 </div>
                             </template>
+
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">تصفية حسب حالة المهمة</label>
+                                <select x-model="reportStatusFilter" class="w-full px-4 py-2.5 border rounded-xl bg-white outline-none font-medium">
+                                    <option value="all">الكل (منجزة وقيد التنفيذ)</option>
+                                    <option value="completed">المنجزة فقط ✅</option>
+                                    <option value="pending">قيد التنفيذ فقط ⏳</option>
+                                </select>
+                            </div>
                         </div>
 
                         <!-- منطقة المعاينة والطباعة -->
@@ -323,7 +332,7 @@
                                 </div>
                             </div>
 
-                            <!-- جدول مهام التقرير بترقيم تسلسلي صريح يعتمد على الـ index الإجباري -->
+                            <!-- جدول مهام التقرير بترقيم تسلسلي صريح يقرأ index + 1 المباشر -->
                             <div class="overflow-x-auto">
                                 <table class="w-full text-right border-collapse border border-gray-200">
                                     <thead>
@@ -409,6 +418,7 @@
                 displayMode: 'list',   
                 reportType: 'all',
                 selectedReportUser: '',
+                reportStatusFilter: 'all', // متغير فلتر حالة التقارير الجديد
                 isOnline: false,
                 isSyncing: false,
                 tasks: [],
@@ -486,12 +496,19 @@
                     return Math.round((completed / list.length) * 100);
                 },
 
-                // التقرير الموحد المصفي بدقة تامة وبدون أي تعقيد
+                // التقرير الموحد المحدث ليدعم تصفية الموظف وتصفية الحالة معاً
                 getReportTasks() {
                     let list = [...this.tasks];
+                    // تصفية حسب الموظف
                     if (this.reportType === 'user' && this.selectedReportUser) {
                         let targetUser = this.selectedReportUser.toLowerCase().trim();
                         list = list.filter(t => t.assignee.toLowerCase() === targetUser);
+                    }
+                    // تصفية حسب الحالة (الكل / منجزة / قيد التنفيذ)
+                    if (this.reportStatusFilter === 'completed') {
+                        list = list.filter(t => t.status === 'completed');
+                    } else if (this.reportStatusFilter === 'pending') {
+                        list = list.filter(t => t.status === 'pending');
                     }
                     return list;
                 },

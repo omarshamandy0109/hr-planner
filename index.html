@@ -190,35 +190,60 @@
                         </div>
                     </div>
 
-                    <!-- المهام الجارية -->
+                    <!-- المهام الجارية (مرتبة حسب التاريخ وتتلوّن بالاحمر فى يوم استحقاقها) -->
                     <div class="space-y-4">
                         <h3 class="text-sm font-bold text-amber-700 flex items-center gap-2">
-                            <i class="fas fa-hourglass-half"></i> المهام الجارية وقيد التنفيذ ( <span x-text="getPendingTasks().length"></span> )
+                            <i class="fas fa-hourglass-half"></i> المهام الجارية وقيد التنفيذ ( مرتبة حسب تاريخ الاستحقاق 📅 ) ( <span x-text="getPendingTasks().length"></span> )
                         </h3>
 
-                        <!-- عرض كروت مع خانة التعليقات -->
+                        <!-- عرض كروت -->
                         <template x-if="displayMode === 'grid'">
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                <template x-for="(task, index) in getPendingTasks()" :key="'pending-grid-' + index">
-                                    <div class="bg-white border rounded-2xl p-5 shadow-sm space-y-4 relative flex flex-col justify-between">
-                                        <div class="space-y-2 pr-2 pt-2">
-                                            <h4 class="font-bold text-lg leading-snug text-gray-800" x-text="task.title"></h4>
+                                <template x-for="(task, index) in getPendingTasks()" :key="'pending-grid-' + (task.id || index)">
+                                    <div class="border rounded-2xl p-5 shadow-sm space-y-4 relative flex flex-col justify-between transition"
+                                         :class="isToday(task.date) ? 'bg-red-50 border-red-300 ring-2 ring-red-400 animate-pulse' : 'bg-white border-gray-200'">
+                                        
+                                        <!-- تنبيه يوم المهمة -->
+                                        <template x-if="isToday(task.date)">
+                                            <div class="bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-lg text-center shadow-xs flex items-center justify-center gap-1">
+                                                <i class="fas fa-bell animate-bounce"></i> تنبيه هام: موعد استحقاق هذه المهمة هو اليوم!
+                                            </div>
+                                        </template>
+
+                                        <div class="space-y-2 pr-2 pt-1">
+                                            <div class="flex justify-between items-start gap-2">
+                                                <h4 class="font-bold text-lg leading-snug text-gray-800" x-text="task.title"></h4>
+                                                <div class="flex items-center gap-1">
+                                                    <!-- زر التعديل (متاح لـ OMAR أو صاحب المهمة) -->
+                                                    <template x-if="currentUserObj.username === 'OMAR' || currentUserObj.username.toLowerCase() === task.assignee.toLowerCase()">
+                                                        <button @click="editTaskModal(task)" class="text-blue-500 hover:text-blue-700 p-1 text-sm transition" title="تعديل المهمة">
+                                                            <i class="fas fa-edit"></i>
+                                                        </button>
+                                                    </template>
+                                                    <!-- زر المسح (متاح لـ OMAR فقط) -->
+                                                    <template x-if="currentUserObj.username === 'OMAR'">
+                                                        <button @click="deleteTask(task)" class="text-red-500 hover:text-red-700 p-1 text-sm transition" title="مسح المهمة">
+                                                            <i class="fas fa-trash-alt"></i>
+                                                        </button>
+                                                    </template>
+                                                </div>
+                                            </div>
                                             <div class="flex items-center gap-2 text-xs text-gray-500">
                                                 <i class="fas fa-user-tie text-indigo-600"></i>
                                                 <span>المسؤول: <strong class="text-gray-700" x-text="task.assignee"></strong></span>
                                             </div>
                                             <div class="flex items-center gap-2 text-xs text-gray-500">
                                                 <i class="fas fa-calendar-alt text-blue-600"></i>
-                                                <span>التاريخ: <strong class="text-gray-700" x-text="task.date"></strong></span>
+                                                <span>تاريخ الاستحقاق: <strong :class="isToday(task.date) ? 'text-red-600 font-black' : 'text-gray-700'" x-text="task.date"></strong></span>
                                             </div>
                                         </div>
 
                                         <!-- خانة التعليقات داخل الكارت -->
-                                        <div class="bg-slate-50 border border-gray-200 rounded-xl p-3 space-y-2">
+                                        <div class="bg-white/80 border border-gray-200 rounded-xl p-3 space-y-2">
                                             <span class="text-xs font-bold text-gray-600 block"><i class="fas fa-comments text-indigo-600 ml-1"></i> الردود والتعليقات:</span>
                                             <div class="max-h-28 overflow-y-auto space-y-1 text-xs text-gray-700 font-medium">
                                                 <template x-if="task.comments">
-                                                    <div class="whitespace-pre-line bg-white p-2 rounded-lg border border-gray-100 shadow-2xs" x-text="task.comments"></div>
+                                                    <div class="whitespace-pre-line bg-slate-50 p-2 rounded-lg border border-gray-100 shadow-2xs" x-text="task.comments"></div>
                                                 </template>
                                                 <template x-if="!task.comments">
                                                     <span class="text-gray-400 italic block">لا توجد تعليقات بعد...</span>
@@ -240,7 +265,7 @@
                             </div>
                         </template>
 
-                        <!-- عرض جدول للمهام الجارية -->
+                        <!-- عرض جدول -->
                         <template x-if="displayMode === 'list'">
                             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                                 <table class="w-full text-right border-collapse">
@@ -249,21 +274,34 @@
                                             <th class="p-4 text-center">#</th>
                                             <th class="p-4">عنوان المهمة</th>
                                             <th class="p-4">المسؤول عنها</th>
-                                            <th class="p-4">التاريخ</th>
+                                            <th class="p-4">تاريخ الاستحقاق</th>
                                             <th class="p-4">الحالة</th>
                                             <th class="p-4 text-center">الإجراءات</th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-gray-100 text-sm">
-                                        <template x-for="(task, index) in getPendingTasks()" :key="'pending-list-' + index">
-                                            <tr class="hover:bg-gray-50/50 transition">
+                                        <template x-for="(task, index) in getPendingTasks()" :key="'pending-list-' + (task.id || index)">
+                                            <tr class="transition" :class="isToday(task.date) ? 'bg-red-50 hover:bg-red-100/50 font-semibold' : 'hover:bg-gray-50/50'">
                                                 <td class="p-4 text-center font-bold text-indigo-600" x-text="index + 1"></td>
-                                                <td class="p-4 font-bold" x-text="task.title"></td>
+                                                <td class="p-4 font-bold">
+                                                    <span x-text="task.title"></span>
+                                                    <template x-if="isToday(task.date)">
+                                                        <span class="bg-red-600 text-white text-[10px] px-2 py-0.5 rounded-full mr-2 inline-flex items-center gap-1 animate-pulse">
+                                                            <i class="fas fa-bell"></i> مستحقة اليوم
+                                                        </span>
+                                                    </template>
+                                                </td>
                                                 <td class="p-4 text-gray-700" x-text="task.assignee"></td>
-                                                <td class="p-4 text-gray-600 font-mono text-xs" x-text="task.date"></td>
+                                                <td class="p-4 font-mono text-xs" :class="isToday(task.date) ? 'text-red-600 font-black' : 'text-gray-600'" x-text="task.date"></td>
                                                 <td class="p-4"><span class="text-xs px-2.5 py-1 rounded-full font-bold bg-amber-100 text-amber-800">جارية ⏳</span></td>
-                                                <td class="p-4 text-center">
+                                                <td class="p-4 text-center space-x-2 space-x-reverse">
                                                     <button @click="markAsCompleted(task)" class="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-3 py-1.5 rounded-lg text-xs font-bold transition">إتمام</button>
+                                                    <template x-if="currentUserObj.username === 'OMAR' || currentUserObj.username.toLowerCase() === task.assignee.toLowerCase()">
+                                                        <button @click="editTaskModal(task)" class="bg-blue-50 text-blue-600 hover:bg-blue-100 px-2.5 py-1.5 rounded-lg text-xs font-bold transition">تعديل</button>
+                                                    </template>
+                                                    <template x-if="currentUserObj.username === 'OMAR'">
+                                                        <button @click="deleteTask(task)" class="bg-red-50 text-red-600 hover:bg-red-100 px-2.5 py-1.5 rounded-lg text-xs font-bold transition">مسح</button>
+                                                    </template>
                                                 </td>
                                             </tr>
                                         </template>
@@ -287,16 +325,24 @@
                                         <th class="p-4">المسؤول</th>
                                         <th class="p-4">التاريخ</th>
                                         <th class="p-4">الحالة</th>
+                                        <template x-if="currentUserObj.username === 'OMAR'">
+                                            <th class="p-4 text-center">الإجراء</th>
+                                        </template>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-100 text-sm">
-                                    <template x-for="(task, index) in getCompletedTasks()" :key="'completed-list-' + index">
+                                    <template x-for="(task, index) in getCompletedTasks()" :key="'completed-list-' + (task.id || index)">
                                         <tr class="hover:bg-gray-50/50 transition">
                                             <td class="p-4 text-center font-bold text-emerald-600" x-text="index + 1"></td>
                                             <td class="p-4 font-bold text-gray-600 line-through" x-text="task.title"></td>
                                             <td class="p-4 text-gray-700" x-text="task.assignee"></td>
                                             <td class="p-4 text-gray-600 font-mono text-xs" x-text="task.date"></td>
                                             <td class="p-4"><span class="text-xs px-2.5 py-1 rounded-full font-bold bg-emerald-100 text-emerald-800">مكتملة ✅</span></td>
+                                            <template x-if="currentUserObj.username === 'OMAR'">
+                                                <td class="p-4 text-center">
+                                                    <button @click="deleteTask(task)" class="bg-red-50 text-red-600 hover:bg-red-100 px-2.5 py-1.5 rounded-lg text-xs font-bold transition">مسح</button>
+                                                </td>
+                                            </template>
                                         </tr>
                                     </template>
                                 </tbody>
@@ -386,7 +432,7 @@
                                 </div>
                             </div>
 
-                            <!-- جدول مهام التقرير بترقيم تسلسلي يبدأ من 1 -->
+                            <!-- جدول مهام التقرير مرتبطة بالتواريخ -->
                             <div class="overflow-x-auto">
                                 <table class="w-full text-right border-collapse border border-gray-200">
                                     <thead>
@@ -394,12 +440,12 @@
                                             <th class="p-3 border text-center">#</th>
                                             <th class="p-3 border">عنوان المهمة</th>
                                             <th class="p-3 border">المسؤول</th>
-                                            <th class="p-3 border">التاريخ</th>
+                                            <th class="p-3 border">تاريخ الاستحقاق</th>
                                             <th class="p-3 border">الحالة</th>
                                         </tr>
                                     </thead>
                                     <tbody class="text-sm divide-y">
-                                        <template x-for="(task, index) in getReportTasks()" :key="'report-row-' + index">
+                                        <template x-for="(task, index) in getReportTasks()" :key="'report-row-' + (task.id || index)">
                                             <tr>
                                                 <td class="p-3 border text-center font-mono font-bold text-indigo-600" x-text="index + 1"></td>
                                                 <td class="p-3 border font-bold" x-text="task.title"></td>
@@ -445,7 +491,7 @@
                     </div>
                 </div>
 
-                <!-- 4️⃣ تبويب إدارة المستخدمين (تم إصلاحه وإعادته كاملاً بالأسفل) -->
+                <!-- 4️⃣ تبويب إدارة المستخدمين -->
                 <div x-show="activeTab === 'users' && currentUserObj.role === 'admin'" class="space-y-6">
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex justify-between items-center">
                         <div>
@@ -522,6 +568,7 @@
                 isSyncing: false,
                 tasks: [],
                 deletedIds: JSON.parse(localStorage.getItem('deleted_tasks_ids') || '[]'),
+                completedLocalIds: JSON.parse(localStorage.getItem('completed_local_ids') || '[]'),
                 usersList: [],
                 newTask: { title: '', assignee: '', date: '', status: 'pending', comments: '' },
 
@@ -539,8 +586,18 @@
                     return `${year}-${month}-${day}`;
                 },
 
+                // التحقق هل تاريخ المهمة هو تاريخ اليوم الحالي (2026-10-30)
+                isToday(dateStr) {
+                    if (!dateStr) return false;
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    return dateStr === todayStr;
+                },
+
                 cleanTask(t) {
                     let cleanStatus = String(t.status || 'pending').toLowerCase().trim();
+                    if (this.completedLocalIds.includes(String(t.id))) {
+                        cleanStatus = 'completed';
+                    }
                     if (cleanStatus !== 'completed') cleanStatus = 'pending';
                     return {
                         ...t,
@@ -559,11 +616,23 @@
                         const res = await fetch(SCRIPT_URL);
                         const data = await res.json();
                         
-                        if (data.users) this.usersList = data.users;
+                        let defaultOmar = { username: 'OMAR', password: data.users?.find(u => u.username === 'OMAR')?.password || '123456', role: 'admin', position: 'Super Admin' };
+                        
+                        if (data.users && Array.isArray(data.users)) {
+                            let hasOmar = data.users.some(u => u.username.toLowerCase() === 'omar');
+                            this.usersList = hasOmar ? data.users : [defaultOmar, ...data.users];
+                        } else {
+                            this.usersList = [defaultOmar];
+                        }
+
                         if (data.tasks && Array.isArray(data.tasks)) {
-                            this.tasks = data.tasks
+                            let fetchedTasks = data.tasks
                                 .map(t => this.cleanTask(t))
                                 .filter(t => t.title !== '' && t.assignee !== '' && !this.deletedIds.includes(t.id));
+                            
+                            let uniqueMap = new Map();
+                            fetchedTasks.forEach(t => uniqueMap.set(t.id, t));
+                            this.tasks = Array.from(uniqueMap.values());
                         }
                         this.isOnline = true;
                     } catch (e) {
@@ -572,13 +641,24 @@
                     }
                 },
 
+                // دالة الترتيب الفعالة: تضع مهام اليوم في المقدمة، ثم ترتب باقي المهام تصاعدياً حسب تاريخ النهاية الأقرب
+                sortTasksByDate(list) {
+                    return list.sort((a, b) => {
+                        let aIsToday = this.isToday(a.date);
+                        let bIsToday = this.isToday(b.date);
+                        if (aIsToday && !bIsToday) return -1;
+                        if (!aIsToday && bIsToday) return 1;
+                        return new Date(a.date) - new Date(b.date);
+                    });
+                },
+
                 getFilteredTasks() {
                     let list = [...this.tasks];
                     let myName = (this.currentUserObj.username || '').toLowerCase().trim();
                     if (this.taskViewMode === 'mine') {
                         list = list.filter(t => t.assignee.toLowerCase() === myName);
                     }
-                    return list;
+                    return this.sortTasksByDate(list);
                 },
 
                 getPendingTasks() {
@@ -586,7 +666,7 @@
                 },
 
                 getCompletedTasks() {
-                    return this.getFilteredTasks().filter(t => t.status === 'completed');
+                    return this.sortTasksByDate(this.getFilteredTasks().filter(t => t.status === 'completed'));
                 },
 
                 getCompletionRate() {
@@ -607,7 +687,7 @@
                     } else if (this.reportStatusFilter === 'pending') {
                         list = list.filter(t => t.status === 'pending');
                     }
-                    return list;
+                    return this.sortTasksByDate(list);
                 },
 
                 getReportCompletionRate() {
@@ -674,7 +754,7 @@
                         status: 'pending',
                         comments: ''
                     });
-                    this.tasks.push(taskItem);
+                    this.tasks.unshift(taskItem);
                     this.newTask = { title: '', assignee: '', date: '', status: 'pending', comments: '' };
                     try {
                         await fetch(SCRIPT_URL, {
@@ -683,6 +763,53 @@
                             body: JSON.stringify({ action: 'add_task', task: taskItem })
                         });
                     } catch (e) { console.error(e); }
+                },
+
+                // نافذة تعديل المهمة (العنوان، التاريخ، المسؤول)
+                async editTaskModal(task) {
+                    const { value: formValues } = await Swal.fire({
+                        title: 'تعديل بيانات المهمة',
+                        html: `
+                            <div class="text-right space-y-3">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-700 mb-1">عنوان المهمة</label>
+                                    <input id="swal-edit-title" class="swal2-input !w-full !m-0" value="${task.title}" placeholder="عنوان المهمة">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-700 mb-1">تاريخ الاستحقاق (النهاية)</label>
+                                    <input id="swal-edit-date" type="date" class="swal2-input !w-full !m-0" value="${task.date}">
+                                </div>
+                            </div>
+                        `,
+                        focusConfirm: false,
+                        showCancelButton: true,
+                        confirmButtonText: 'حفظ التعديلات',
+                        cancelButtonText: 'إلغاء',
+                        preConfirm: () => [
+                            document.getElementById('swal-edit-title').value.trim(),
+                            document.getElementById('swal-edit-date').value
+                        ]
+                    });
+
+                    if (formValues) {
+                        let [newTitle, newDate] = formValues;
+                        if (!newTitle) { Swal.fire('خطأ', 'عنوان المهمة لا يمكن أن يكون فارغاً', 'error'); return; }
+                        
+                        task.title = newTitle;
+                        task.date = newDate || task.date;
+
+                        try {
+                            await fetch(SCRIPT_URL, {
+                                method: 'POST', mode: 'no-cors',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ action: 'update_task', id: String(task.id), title: task.title, date: task.date })
+                            });
+                            Swal.fire('تم بنجاح', 'تم تحديث تفاصيل المهمة وتاريخها', 'success');
+                        } catch (e) {
+                            console.error(e);
+                            Swal.fire('تنبيه', 'تم التعديل محلياً', 'info');
+                        }
+                    }
                 },
 
                 async addComment(task) {
@@ -704,6 +831,10 @@
                 async markAsCompleted(task) {
                     if (task.status === 'completed') return;
                     task.status = 'completed';
+                    if (!this.completedLocalIds.includes(String(task.id))) {
+                        this.completedLocalIds.push(String(task.id));
+                        localStorage.setItem('completed_local_ids', JSON.stringify(this.completedLocalIds));
+                    }
                     try {
                         await fetch(SCRIPT_URL, {
                             method: 'POST', mode: 'no-cors',
@@ -711,6 +842,39 @@
                             body: JSON.stringify({ action: 'update_status', id: String(task.id), status: 'completed' })
                         });
                     } catch (e) { console.error(e); }
+                },
+
+                async deleteTask(task) {
+                    if (this.currentUserObj.username !== 'OMAR') {
+                        Swal.fire('خطأ', 'عذراً، صلاحية مسح المهام مخصصة للمسؤول الرئيسي فقط', 'error');
+                        return;
+                    }
+                    const result = await Swal.fire({
+                        title: 'هل أنت متأكد من مسح هذه المهمة؟',
+                        text: `المهمة: "${task.title}"`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'نعم، قم بالحذف',
+                        cancelButtonText: 'إلغاء'
+                    });
+
+                    if (result.isConfirmed) {
+                        this.tasks = this.tasks.filter(t => String(t.id) !== String(task.id));
+                        if (!this.deletedIds.includes(String(task.id))) {
+                            this.deletedIds.push(String(task.id));
+                            localStorage.setItem('deleted_tasks_ids', JSON.stringify(this.deletedIds));
+                        }
+                        try {
+                            await fetch(SCRIPT_URL, {
+                                method: 'POST', mode: 'no-cors',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ action: 'delete_task', id: String(task.id) })
+                            });
+                            Swal.fire('تم الحذف', 'تم مسح المهمة بنجاح من النظام', 'success');
+                        } catch (e) {
+                            console.error(e);
+                        }
+                    }
                 },
 
                 async saveUsersToDatabase() {

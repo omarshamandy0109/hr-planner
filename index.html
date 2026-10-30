@@ -196,6 +196,7 @@
                             <i class="fas fa-hourglass-half"></i> المهام الجارية وقيد التنفيذ ( <span x-text="getPendingTasks().length"></span> )
                         </h3>
 
+                        <!-- عرض كروت مع خانة التعليقات -->
                         <template x-if="displayMode === 'grid'">
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 <template x-for="(task, index) in getPendingTasks()" :key="'pending-grid-' + index">
@@ -211,6 +212,24 @@
                                                 <span>التاريخ: <strong class="text-gray-700" x-text="task.date"></strong></span>
                                             </div>
                                         </div>
+
+                                        <!-- خانة التعليقات داخل الكارت -->
+                                        <div class="bg-slate-50 border border-gray-200 rounded-xl p-3 space-y-2">
+                                            <span class="text-xs font-bold text-gray-600 block"><i class="fas fa-comments text-indigo-600 ml-1"></i> الردود والتعليقات:</span>
+                                            <div class="max-h-28 overflow-y-auto space-y-1 text-xs text-gray-700 font-medium">
+                                                <template x-if="task.comments">
+                                                    <div class="whitespace-pre-line bg-white p-2 rounded-lg border border-gray-100 shadow-2xs" x-text="task.comments"></div>
+                                                </template>
+                                                <template x-if="!task.comments">
+                                                    <span class="text-gray-400 italic block">لا توجد تعليقات بعد...</span>
+                                                </template>
+                                            </div>
+                                            <div class="flex gap-2 pt-1">
+                                                <input type="text" x-model="task.newCommentText" @keyup.enter="addComment(task)" placeholder="اكتب رداً أو تعليقاً..." class="flex-1 px-3 py-1.5 text-xs border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                                                <button @click="addComment(task)" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 text-xs font-bold rounded-lg transition">إرسال</button>
+                                            </div>
+                                        </div>
+
                                         <div class="pt-3 border-t border-gray-100 flex justify-between items-center gap-2">
                                             <button @click="markAsCompleted(task)" class="flex-1 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1">
                                                 <i class="fas fa-check"></i> إتمام المهمة
@@ -221,6 +240,7 @@
                             </div>
                         </template>
 
+                        <!-- عرض جدول للمهام الجارية -->
                         <template x-if="displayMode === 'list'">
                             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                                 <table class="w-full text-right border-collapse">
@@ -267,7 +287,7 @@
                             </button>
                         </div>
 
-                        <!-- خيارات الفلترة المتقدمة للتقرير (تم إضافة فلتر حالة المهمة هنا) -->
+                        <!-- خيارات الفلترة المتقدمة للتقرير -->
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border">
                             <div>
                                 <label class="block text-sm font-bold text-gray-700 mb-2">نوع التقرير</label>
@@ -299,17 +319,17 @@
                             </div>
                         </div>
 
-                        <!-- منطقة المعاينة والطباعة -->
+                        <!-- منطقة المعاينة والطباعة (تم تعديل اسم الفندق هنا بشياكة) -->
                         <div id="printable-report" class="bg-white border rounded-2xl p-8 space-y-6 shadow-sm">
                             <div class="text-center border-b pb-6 space-y-2">
-                                <h1 class="text-2xl font-black text-gray-800">SUNRISE Resorts & Cruises</h1>
+                                <h1 class="text-2xl font-black text-gray-800 tracking-wide">SUNRISE Grand Select Montemare Resort</h1>
                                 <h3 class="text-base font-bold text-emerald-700">منظومة HR الإدارية - تقرير أداء المهام الرسمي</h3>
                                 <template x-if="reportType === 'user' && selectedReportUser">
                                     <p class="text-sm font-bold text-indigo-600 mt-2" x-text="'الموظف المسؤول: ' + selectedReportUser"></p>
                                 </template>
                             </div>
 
-                            <!-- العدادات العلوية للتقرير مرتبطة حتمياً ومباشرة بـ getReportTasks() -->
+                            <!-- العدادات العلوية للتقرير -->
                             <div class="bg-indigo-50/50 border border-indigo-100 rounded-xl p-4 flex flex-wrap justify-around items-center text-center gap-4">
                                 <div>
                                     <span class="text-xs text-gray-500 block">إجمالي المهام المعروضة</span>
@@ -332,7 +352,7 @@
                                 </div>
                             </div>
 
-                            <!-- جدول مهام التقرير بترقيم تسلسلي صريح يقرأ index + 1 المباشر -->
+                            <!-- جدول مهام التقرير بترقيم تسلسلي يبدأ من 1 -->
                             <div class="overflow-x-auto">
                                 <table class="w-full text-right border-collapse border border-gray-200">
                                     <thead>
@@ -347,7 +367,6 @@
                                     <tbody class="text-sm divide-y">
                                         <template x-for="(task, index) in getReportTasks()" :key="'report-row-' + index">
                                             <tr>
-                                                <!-- يعتمد حصرياً على index + 1 لضمان البدء من 1 دائماً وبدون أخطاء -->
                                                 <td class="p-3 border text-center font-mono font-bold text-indigo-600" x-text="index + 1"></td>
                                                 <td class="p-3 border font-bold" x-text="task.title"></td>
                                                 <td class="p-3 border text-gray-700" x-text="task.assignee"></td>
@@ -418,7 +437,7 @@
                 displayMode: 'list',   
                 reportType: 'all',
                 selectedReportUser: '',
-                reportStatusFilter: 'all', // متغير فلتر حالة التقارير الجديد
+                reportStatusFilter: 'all',
                 isOnline: false,
                 isSyncing: false,
                 tasks: [],
@@ -450,7 +469,8 @@
                         assignee: String(t.assignee || '').trim(),
                         status: cleanStatus,
                         date: this.formatTaskDate(t.date),
-                        comments: t.comments || ''
+                        comments: t.comments || '',
+                        newCommentText: ''
                     };
                 },
 
@@ -496,15 +516,12 @@
                     return Math.round((completed / list.length) * 100);
                 },
 
-                // التقرير الموحد المحدث ليدعم تصفية الموظف وتصفية الحالة معاً
                 getReportTasks() {
                     let list = [...this.tasks];
-                    // تصفية حسب الموظف
                     if (this.reportType === 'user' && this.selectedReportUser) {
                         let targetUser = this.selectedReportUser.toLowerCase().trim();
                         list = list.filter(t => t.assignee.toLowerCase() === targetUser);
                     }
-                    // تصفية حسب الحالة (الكل / منجزة / قيد التنفيذ)
                     if (this.reportStatusFilter === 'completed') {
                         list = list.filter(t => t.status === 'completed');
                     } else if (this.reportStatusFilter === 'pending') {
@@ -574,16 +591,33 @@
                         title: this.newTask.title.trim(),
                         assignee: assignedTo,
                         date: this.newTask.date || new Date().toISOString().split('T')[0],
-                        status: 'pending'
+                        status: 'pending',
+                        comments: ''
                     });
                     this.tasks.push(taskItem);
-                    this.newTask = { title: '', assignee: '', date: '', status: 'pending' };
+                    this.newTask = { title: '', assignee: '', date: '', status: 'pending', comments: '' };
                     try {
                         await fetch(SCRIPT_URL, {
                             method: 'POST', mode: 'no-cors',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ action: 'add_task', task: taskItem })
                         });
+                    } catch (e) { console.error(e); }
+                },
+
+                async addComment(task) {
+                    if (!task.newCommentText || !task.newCommentText.trim()) return;
+                    let timestamp = new Date().toLocaleDateString('ar-EG') + ' ' + new Date().toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'});
+                    let formatted = `[${this.currentUserObj.username} (${this.currentUserObj.position}) - ${timestamp}]: ${task.newCommentText.trim()}`;
+                    task.comments = task.comments ? task.comments + '\n' + formatted : formatted;
+                    task.newCommentText = '';
+                    try {
+                        await fetch(SCRIPT_URL, {
+                            method: 'POST', mode: 'no-cors',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ action: 'update_comments', id: String(task.id), comments: task.comments })
+                        });
+                        Swal.fire({ icon: 'success', title: 'تم إرسال التعليق', timer: 1000, showConfirmButton: false });
                     } catch (e) { console.error(e); }
                 },
 

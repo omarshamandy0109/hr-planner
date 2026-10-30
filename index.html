@@ -474,6 +474,7 @@
                     return cleanDate === todayStr;
                 },
 
+                // الترتيب الصحيح للأعمدة بناءً على شيت جوجل الخاص بك: id, title, assignee, date, status, comments
                 cleanTask(t) {
                     return {
                         id: String(t.id || ''),

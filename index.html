@@ -501,6 +501,7 @@
                         }
 
                         if (data.tasks && Array.isArray(data.tasks)) {
+                            // التوافق التام مع ترتيب أعمدة شيت جوجل الخاص بك: id, title, assignee, date, status, comments
                             this.tasks = data.tasks.map(t => this.cleanTask(t)).filter(t => t.title !== '');
                         }
                         this.isOnline = true;

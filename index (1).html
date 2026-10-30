@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منظومة HR الإدارية الذكية</title>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Cairo', sans-serif; }
+        [x-cloak] { display: none !important; }
+        .swal2-popup { font-family: 'Cairo', sans-serif; }
+        @media print {
+            @page { size: A4 portrait; margin: 10mm; }
+            body { background: #fff !important; }
+            .no-print { display: none !important; }
+            main { padding: 0 !important; max-width: none !important; }
+            .print-plain { border: none !important; box-shadow: none !important; padding: 0 !important; }
+            #printable-report { border: none !important; box-shadow: none !important; padding: 0 !important; }
+            thead { display: table-header-group; }
+            tr { page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-gray-800" x-data="hrApp()" x-init="init()">
+
+    <!-- ===================== شاشة تسجيل الدخول ===================== -->
+    <template x-if="!isLoggedIn">
+        <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-indigo-950 to-emerald-950 p-4">
+            <div class="bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl p-8 max-w-md w-full text-center border border-white/20">
+                <div class="mb-6">
+                    <div class="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl shadow-inner border border-emerald-100">
+                        <i class="fas fa-users-cog"></i>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-800">منظومة HR الإدارية</h1>
+                    <p class="text-sm text-gray-500 mt-1">تسجيل الدخول للمنظومة الإدارية المتكاملة</p>
+                    <p class="text-xs mt-3" :class="connection === 'online' ? 'text-emerald-600' : (connection === 'offline' ? 'text-red-600' : 'text-amber-600')">
+                        <span x-show="connection === 'online'">🟢 تم الاتصال بقاعدة البيانات</span>
+                        <span x-show="connection === 'connecting'">🟡 جاري الاتصال بقاعدة البيانات...</span>
+                        <span x-show="connection === 'offline'">🔴 تعذر الاتصال بقاعدة البيانات</span>
+                    </p>
+                    <p x-show="connection === 'offline' && lastError" x-text="'السبب: ' + lastError" class="text-[11px] text-red-500 mt-1 break-words" dir="rtl"></p>
+                </div>
+                <div class="space-y-4 text-right">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">اسم المستخدم</label>
+                        <input type="text" x-model="loginUser" @keyup.enter="handleLogin()" autocomplete="username" class="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition bg-gray-50" placeholder="أدخل اسم المستخدم">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">كلمة المرور</label>
+                        <input type="password" x-model="loginPass" @keyup.enter="handleLogin()" autocomplete="current-password" class="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition bg-gray-50" placeholder="أدخل كلمة المرور">
+                    </div>
+                    <button @click="handleLogin()" :disabled="loggingIn" class="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white py-3 rounded-xl font-bold transition shadow-lg shadow-emerald-600/25">
+                        <span x-show="!loggingIn">تسجيل الدخول</span>
+                        <span x-show="loggingIn"><i class="fas fa-spinner fa-spin"></i> جاري التحقق...</span>
+                    </button>
+                    <p x-show="loginError" x-text="loginErrorMsg" class="text-red-500 text-sm text-center font-medium mt-2"></p>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- ===================== التطبيق الرئيسي ===================== -->
+    <template x-if="isLoggedIn">
+        <div class="min-h-screen flex flex-col">
+
+            <!-- الهيدر -->
+            <header class="no-print bg-white shadow-sm border-b px-6 py-4 flex flex-wrap justify-between items-center gap-4 sticky top-0 z-50">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-lg border border-emerald-100">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold text-gray-800">نظام HR الإداري</h1>
+                        <span class="text-xs px-2.5 py-0.5 rounded-full font-medium inline-block mt-0.5"
+                              :class="connection === 'online' ? 'bg-emerald-100 text-emerald-800' : (connection === 'offline' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800')">
+                            <span x-show="connection === 'online'">🟢 متصل بقاعدة البيانات</span>
+                            <span x-show="connection === 'connecting'">🟡 جاري المزامنة...</span>
+                            <span x-show="connection === 'offline'">🔴 غير متصل</span>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="flex items-center flex-wrap gap-2">
+                    <button @click="activeTab = 'tasks'" :class="activeTab === 'tasks' ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" class="px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2">
+                        <i class="fas fa-tasks"></i> لوحة المهام
+                    </button>
+                    <button @click="activeTab = 'reports'" :class="activeTab === 'reports' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" class="px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2">
+                        <i class="fas fa-print"></i> التقارير والطباعة
+                    </button>
+                    <template x-if="isAdmin()">
+                        <button @click="activeTab = 'kpis'" :class="activeTab === 'kpis' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" class="px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2">
+                            <i class="fas fa-chart-line"></i> تحليلات KPIs
+                        </button>
+                    </template>
+                    <template x-if="isAdmin()">
+                        <button @click="activeTab = 'users'" :class="activeTab === 'users' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" class="px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2">
+                            <i class="fas fa-users-gear"></i> إدارة المستخدمين (<span x-text="usersList.length"></span>)
+                        </button>
+                    </template>
+
+                    <button @click="syncData(true)" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-xl text-sm font-medium transition flex items-center gap-1.5">
+                        <i class="fas fa-sync-alt" :class="{'fa-spin': isSyncing}"></i> تحديث
+                    </button>
+                    <button @click="openChangePasswordModal()" class="bg-amber-50 hover:bg-amber-100 text-amber-700 px-3 py-2 rounded-xl text-sm font-medium transition flex items-center gap-1.5">
+                        <i class="fas fa-key"></i> كلمة المرور
+                    </button>
+
+                    <div class="h-6 w-px bg-gray-200"></div>
+
+                    <div class="text-right px-2">
+                        <span class="text-xs text-gray-400 block" x-text="currentUserObj.position"></span>
+                        <span class="text-sm font-bold text-gray-800" x-text="currentUserObj.username"></span>
+                    </div>
+                    <button @click="logout()" class="text-red-600 hover:bg-red-50 p-2 rounded-xl text-sm font-medium transition" title="خروج">
+                        <i class="fas fa-sign-out-alt text-lg"></i>
+                    </button>
+                </div>
+            </header>
+
+            <main class="flex-1 p-6 max-w-7xl mx-auto w-full space-y-6">
+
+                <!-- ============ 1) تبويب المهام ============ -->
+                <div x-show="activeTab === 'tasks'" class="space-y-6">
+
+                    <!-- الإحصائيات -->
+                    <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                            <div>
+                                <p class="text-xs text-gray-500 font-medium">إجمالي المهام المعروضة</p>
+                                <h3 class="text-3xl font-bold text-gray-800 mt-1" x-text="getFilteredTasks().length">0</h3>
+                            </div>
+                            <div class="w-11 h-11 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-lg"><i class="fas fa-clipboard-list"></i></div>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                            <div>
+                                <p class="text-xs text-gray-500 font-medium">المنجزة</p>
+                                <h3 class="text-3xl font-bold text-emerald-600 mt-1" x-text="getCompletedTasks().length">0</h3>
+                            </div>
+                            <div class="w-11 h-11 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-lg"><i class="fas fa-check-circle"></i></div>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                            <div>
+                                <p class="text-xs text-gray-500 font-medium">جارية</p>
+                                <h3 class="text-3xl font-bold text-amber-600 mt-1" x-text="getPendingTasks().length">0</h3>
+                            </div>
+                            <div class="w-11 h-11 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center text-lg"><i class="fas fa-clock"></i></div>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                            <div>
+                                <p class="text-xs text-gray-500 font-medium">متأخرة</p>
+                                <h3 class="text-3xl font-bold text-red-600 mt-1" x-text="getOverdueTasks().length">0</h3>
+                            </div>
+                            <div class="w-11 h-11 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center text-lg"><i class="fas fa-exclamation-triangle"></i></div>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between col-span-2 lg:col-span-1">
+                            <div>
+                                <p class="text-xs text-gray-500 font-medium">نسبة الإنجاز</p>
+                                <h3 class="text-3xl font-bold text-indigo-600 mt-1" x-text="getCompletionRate() + '%'">0%</h3>
+                            </div>
+                            <div class="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-lg"><i class="fas fa-chart-pie"></i></div>
+                        </div>
+                    </div>
+
+                    <!-- نموذج إضافة مهمة -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                        <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
+                            <i class="fas fa-plus-circle text-emerald-600"></i>
+                            <span x-text="canAssignTasks() ? 'إضافة وإسناد مهمة جديدة' : 'إضافة مهمة جديدة لنفسي'"></span>
+                        </h2>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <input type="text" x-model="newTask.title" @keyup.enter="addTask()" placeholder="عنوان المهمة..." class="px-4 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500">
+
+                            <template x-if="canAssignTasks()">
+                                <select x-model="newTask.assignee" class="px-4 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+                                    <option value="">المسؤول (افتراضي: أنا)</option>
+                                    <template x-for="user in getAllowedAssignees()" :key="user.username">
+                                        <option :value="user.username" x-text="user.username + ' (' + user.position + ')'"></option>
+                                    </template>
+                                </select>
+                            </template>
+                            <template x-if="!canAssignTasks()">
+                                <div class="px-4 py-2.5 border rounded-xl bg-gray-50 text-gray-700 text-sm flex items-center font-medium">
+                                    <span>المسؤول: <strong class="text-emerald-700" x-text="currentUserObj.username"></strong></span>
+                                </div>
+                            </template>
+
+                            <input type="date" x-model="newTask.date" class="px-4 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500">
+                            <button @click="addTask()" :disabled="saving" class="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-bold py-2.5 rounded-xl transition shadow-md shadow-emerald-600/25 flex items-center justify-center gap-2">
+                                <i class="fas fa-save"></i> حفظ المهمة
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- شريط التحكم -->
+                    <div class="flex flex-wrap justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                        <div class="flex items-center gap-2 bg-gray-100 p-1 rounded-xl">
+                            <button @click="taskViewMode = 'mine'" :class="taskViewMode === 'mine' ? 'bg-white text-emerald-700 shadow' : 'text-gray-600'" class="px-4 py-1.5 rounded-lg text-xs font-bold transition">مهامي الخاصة</button>
+                            <button @click="taskViewMode = 'all'" :class="taskViewMode === 'all' ? 'bg-white text-emerald-700 shadow' : 'text-gray-600'" class="px-4 py-1.5 rounded-lg text-xs font-bold transition">كل مهام الفريق</button>
+                        </div>
+
+                        <div class="flex-1 min-w-[180px] max-w-sm relative">
+                            <i class="fas fa-search absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                            <input type="text" x-model="taskSearch" placeholder="بحث بعنوان المهمة أو اسم المسؤول..." class="w-full pr-9 pl-3 py-2 text-sm border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-50">
+                        </div>
+
+                        <div class="flex items-center gap-2 bg-gray-100 p-1 rounded-xl">
+                            <button @click="displayMode = 'grid'" :class="displayMode === 'grid' ? 'bg-white text-indigo-700 shadow' : 'text-gray-600'" class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5">
+                                <i class="fas fa-th-large"></i> كروت
+                            </button>
+                            <button @click="displayMode = 'list'" :class="displayMode === 'list' ? 'bg-white text-indigo-700 shadow' : 'text-gray-600'" class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5">
+                                <i class="fas fa-list"></i> جدول
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- المهام الجارية -->
+                    <div class="space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <h3 class="text-sm font-bold text-amber-700 flex items-center gap-2">
+                                <i class="fas fa-hourglass-half"></i> المهام الجارية (<span x-text="getPendingTasks().length"></span>)
+                            </h3>
+                            <span class="text-xs text-gray-500">الترتيب: المتأخرة أولاً ← مهام اليوم ← الأقرب موعداً ← بدون تاريخ</span>
+                        </div>
+
+                        <div x-show="getPendingTasks().length === 0" class="bg-white border border-dashed rounded-2xl p-8 text-center text-gray-400 text-sm">
+                            <i class="fas fa-mug-hot text-2xl mb-2 block"></i> لا توجد مهام جارية
+                        </div>
+
+                        <!-- عرض كروت -->
+                        <template x-if="displayMode === 'grid'">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <template x-for="(task, index) in getPendingTasks()" :key="'pg-' + index + '-' + task.id">
+                                    <div class="border rounded-2xl p-5 shadow-sm space-y-4 flex flex-col justify-between transition"
+                                         :class="taskState(task) === 'overdue' ? 'bg-red-50 border-red-300' : (taskState(task) === 'today' ? 'bg-amber-50 border-amber-400 ring-2 ring-amber-300/50' : 'bg-white border-gray-200')">
+
+                                        <template x-if="taskState(task) === 'overdue'">
+                                            <div class="bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-lg text-center flex items-center justify-center gap-1">
+                                                <i class="fas fa-exclamation-circle"></i> متأخرة <span x-text="overdueDays(task)"></span> يوم
+                                            </div>
+                                        </template>
+                                        <template x-if="taskState(task) === 'today'">
+                                            <div class="bg-amber-500 text-white text-xs font-bold px-3 py-1 rounded-lg text-center flex items-center justify-center gap-1 animate-pulse">
+                                                <i class="fas fa-bell"></i> موعد التسليم اليوم!
+                                            </div>
+                                        </template>
+
+                                        <div class="space-y-2">
+                                            <div class="flex justify-between items-start gap-2">
+                                                <h4 class="font-bold text-base leading-snug text-gray-800" x-text="task.title"></h4>
+                                                <div class="text-left shrink-0">
+                                                    <span class="text-[10px] text-gray-400 block">تاريخ النهاية</span>
+                                                    <span class="text-xs font-mono font-bold px-2.5 py-1 rounded-lg inline-block bg-blue-50 text-blue-700 border border-blue-100" x-text="task.date ? fmtDate(task.date) : 'غير محدد'"></span>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center gap-2 text-xs text-gray-500">
+                                                <i class="fas fa-user-tie text-indigo-600"></i>
+                                                <span>المسؤول: <strong class="text-gray-700" x-text="task.assignee"></strong></span>
+                                            </div>
+                                        </div>
+
+                                        <!-- التعليقات -->
+                                        <div class="bg-white/90 border border-gray-200 rounded-xl p-3 space-y-2">
+                                            <span class="text-xs font-bold text-gray-600 block"><i class="fas fa-comments text-indigo-600 ml-1"></i> الردود والتعليقات (<span x-text="commentLines(task).length"></span>)</span>
+                                            <div class="max-h-28 overflow-y-auto space-y-1 text-xs text-gray-700">
+                                                <template x-for="(line, li) in commentLines(task)" :key="'c-' + li">
+                                                    <div class="bg-slate-50 p-2 rounded-lg border border-gray-100" x-text="line"></div>
+                                                </template>
+                                                <template x-if="commentLines(task).length === 0">
+                                                    <span class="text-gray-400 italic block">لا توجد تعليقات بعد...</span>
+                                                </template>
+                                            </div>
+                                            <div class="flex gap-2 pt-1">
+                                                <input type="text" x-model="task.newCommentText" @keyup.enter="addComment(task)" placeholder="اكتب تعليقاً..." class="flex-1 min-w-0 px-3 py-1.5 text-xs border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                                                <button @click="addComment(task)" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 text-xs font-bold rounded-lg transition">إرسال</button>
+                                            </div>
+                                        </div>
+
+                                        <div class="pt-3 border-t border-gray-100 flex items-center gap-2">
+                                            <button @click="markAsCompleted(task)" class="flex-1 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1">
+                                                <i class="fas fa-check"></i> إتمام المهمة
+                                            </button>
+                                            <template x-if="canEditTask(task)">
+                                                <button @click="editTaskModal(task)" class="bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-2 rounded-xl text-xs font-bold transition"><i class="fas fa-edit"></i> تعديل</button>
+                                            </template>
+                                            <template x-if="isOwner()">
+                                                <button @click="deleteTask(task)" class="bg-red-50 text-red-600 hover:bg-red-100 px-3 py-2 rounded-xl text-xs font-bold transition"><i class="fas fa-trash"></i></button>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+
+                        <!-- عرض جدول -->
+                        <template x-if="displayMode === 'list'">
+                            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">
+                                <table class="w-full text-right border-collapse">
+                                    <thead>
+                                        <tr class="bg-gray-50 text-gray-600 text-sm border-b">
+                                            <th class="p-4 text-center">#</th>
+                                            <th class="p-4">عنوان المهمة</th>
+                                            <th class="p-4">المسؤول</th>
+                                            <th class="p-4">تاريخ النهاية</th>
+                                            <th class="p-4">الحالة</th>
+                                            <th class="p-4 text-center">التعليقات</th>
+                                            <th class="p-4 text-center">الإجراءات</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100 text-sm">
+                                        <template x-for="(task, index) in getPendingTasks()" :key="'pl-' + index + '-' + task.id">
+                                            <tr class="transition"
+                                                :class="taskState(task) === 'overdue' ? 'bg-red-50 hover:bg-red-100/60' : (taskState(task) === 'today' ? 'bg-amber-50 hover:bg-amber-100/60 font-semibold' : 'hover:bg-gray-50/60')">
+                                                <td class="p-4 text-center font-bold text-indigo-600" x-text="index + 1"></td>
+                                                <td class="p-4 font-bold" x-text="task.title"></td>
+                                                <td class="p-4 text-gray-700" x-text="task.assignee"></td>
+                                                <td class="p-4 font-mono text-xs text-blue-700 font-bold whitespace-nowrap" x-text="task.date ? fmtDate(task.date) : 'غير محدد'"></td>
+                                                <td class="p-4 whitespace-nowrap">
+                                                    <span class="text-xs px-2.5 py-1 rounded-full font-bold"
+                                                          :class="taskState(task) === 'overdue' ? 'bg-red-100 text-red-800' : (taskState(task) === 'today' ? 'bg-amber-200 text-amber-900' : 'bg-amber-100 text-amber-800')"
+                                                          x-text="taskState(task) === 'overdue' ? ('متأخرة ' + overdueDays(task) + ' يوم') : (taskState(task) === 'today' ? 'تسليم اليوم' : 'جارية')"></span>
+                                                </td>
+                                                <td class="p-4 text-center">
+                                                    <button @click="openComments(task)" class="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-3 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap">
+                                                        <i class="fas fa-comment-dots"></i> <span x-text="commentLines(task).length"></span>
+                                                    </button>
+                                                </td>
+                                                <td class="p-4 text-center whitespace-nowrap space-x-1 space-x-reverse">
+                                                    <button @click="markAsCompleted(task)" class="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-3 py-1.5 rounded-lg text-xs font-bold transition">إتمام</button>
+                                                    <template x-if="canEditTask(task)">
+                                                        <button @click="editTaskModal(task)" class="bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1.5 rounded-lg text-xs font-bold transition">تعديل</button>
+                                                    </template>
+                                                    <template x-if="isOwner()">
+                                                        <button @click="deleteTask(task)" class="bg-red-50 text-red-600 hover:bg-red-100 px-3 py-1.5 rounded-lg text-xs font-bold transition">مسح</button>
+                                                    </template>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </template>
+                    </div>
+
+                    <!-- المهام المكتملة -->
+                    <div class="space-y-4 pt-4 border-t border-gray-200">
+                        <h3 class="text-sm font-bold text-emerald-700 flex items-center gap-2">
+                            <i class="fas fa-check-circle"></i> سجل المهام المكتملة (<span x-text="getCompletedTasks().length"></span>)
+                            <span class="text-xs text-gray-500 font-normal">— الأحدث أولاً</span>
+                        </h3>
+                        <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 overflow-x-auto">
+                            <table class="w-full text-right border-collapse">
+                                <thead>
+                                    <tr class="bg-emerald-50 text-emerald-800 text-sm border-b">
+                                        <th class="p-4 text-center">#</th>
+                                        <th class="p-4">عنوان المهمة</th>
+                                        <th class="p-4">المسؤول</th>
+                                        <th class="p-4">تاريخ النهاية</th>
+                                        <th class="p-4">الحالة</th>
+                                        <th class="p-4 text-center">التعليقات</th>
+                                        <th class="p-4 text-center">إجراء</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100 text-sm">
+                                    <template x-for="(task, index) in getCompletedTasks()" :key="'cl-' + index + '-' + task.id">
+                                        <tr class="hover:bg-gray-50/60 transition">
+                                            <td class="p-4 text-center font-bold text-emerald-600" x-text="index + 1"></td>
+                                            <td class="p-4 font-bold text-gray-500 line-through" x-text="task.title"></td>
+                                            <td class="p-4 text-gray-700" x-text="task.assignee"></td>
+                                            <td class="p-4 text-gray-600 font-mono text-xs whitespace-nowrap" x-text="task.date ? fmtDate(task.date) : '—'"></td>
+                                            <td class="p-4"><span class="text-xs px-2.5 py-1 rounded-full font-bold bg-emerald-100 text-emerald-800 whitespace-nowrap">مكتملة ✅</span></td>
+                                            <td class="p-4 text-center">
+                                                <button @click="openComments(task)" class="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-3 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap">
+                                                    <i class="fas fa-comment-dots"></i> <span x-text="commentLines(task).length"></span>
+                                                </button>
+                                            </td>
+                                            <td class="p-4 text-center">
+                                                <template x-if="canEditTask(task)">
+                                                    <button @click="reopenTask(task)" class="bg-gray-100 text-gray-600 hover:bg-gray-200 px-3 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap">إعادة فتح</button>
+                                                </template>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============ 2) تبويب التقارير ============ -->
+                <div x-show="activeTab === 'reports'" class="space-y-6">
+                    <div class="print-plain bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-6">
+
+                        <!-- أدوات التقرير (لا تُطبع) -->
+                        <div class="no-print space-y-4 border-b pb-5">
+                            <div class="flex flex-wrap justify-between items-center gap-3">
+                                <h2 class="text-lg font-bold text-gray-800">مركز التقارير والطباعة</h2>
+                                <div class="flex items-center gap-2">
+                                    <button @click="exportCsv()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-sm">
+                                        <i class="fas fa-file-excel"></i> تصدير Excel
+                                    </button>
+                                    <button @click="printReport()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl transition shadow-md flex items-center gap-2 text-sm">
+                                        <i class="fas fa-print"></i> طباعة التقرير
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">الموظف</label>
+                                    <select x-model="rf.user" :disabled="!canSeeAllReports()" class="w-full px-3 py-2 border rounded-xl bg-white text-sm outline-none disabled:bg-gray-100">
+                                        <option value="">كل الموظفين</option>
+                                        <template x-for="user in usersList" :key="'ru-' + user.username">
+                                            <option :value="user.username" x-text="user.username"></option>
+                                        </template>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">الحالة</label>
+                                    <select x-model="rf.status" class="w-full px-3 py-2 border rounded-xl bg-white text-sm outline-none">
+                                        <option value="all">الكل</option>
+                                        <option value="pending">الجارية (بما فيها المتأخرة)</option>
+                                        <option value="overdue">المتأخرة فقط</option>
+                                        <option value="completed">المكتملة</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">من تاريخ</label>
+                                    <input type="date" x-model="rf.from" class="w-full px-3 py-2 border rounded-xl bg-white text-sm outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">إلى تاريخ</label>
+                                    <input type="date" x-model="rf.to" class="w-full px-3 py-2 border rounded-xl bg-white text-sm outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">الترتيب حسب</label>
+                                    <select x-model="rf.sort" class="w-full px-3 py-2 border rounded-xl bg-white text-sm outline-none">
+                                        <option value="date">التاريخ</option>
+                                        <option value="employee">الموظف</option>
+                                        <option value="status">الحالة (المتأخرة أولاً)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-wrap gap-2 text-xs">
+                                <span class="text-gray-500 self-center">فترة سريعة:</span>
+                                <button @click="setPeriod('all')" class="px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 font-bold">الكل</button>
+                                <button @click="setPeriod('today')" class="px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 font-bold">اليوم</button>
+                                <button @click="setPeriod('week')" class="px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 font-bold">هذا الأسبوع</button>
+                                <button @click="setPeriod('month')" class="px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 font-bold">هذا الشهر</button>
+                                <button @click="setPeriod('lastmonth')" class="px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 font-bold">الشهر الماضي</button>
+                            </div>
+                        </div>
+
+                        <!-- التقرير القابل للطباعة -->
+                        <div id="printable-report" class="bg-white border rounded-2xl p-8 space-y-6 shadow-sm">
+                            <div class="text-center border-b pb-5 space-y-1">
+                                <h1 class="text-2xl font-black text-gray-800 tracking-wide">SUNRISE Grand Select Montemare Resort</h1>
+                                <h3 class="text-base font-bold text-emerald-700">إدارة الموارد البشرية — تقرير أداء المهام</h3>
+                            </div>
+
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-1 text-xs text-gray-700">
+                                <div>الموظف: <strong x-text="rf.user || 'كل الموظفين'"></strong></div>
+                                <div>الفترة: <strong x-text="reportPeriodText()"></strong></div>
+                                <div>الحالة: <strong x-text="reportStatusText()"></strong></div>
+                                <div>تاريخ الطباعة: <strong x-text="fmtDate(todayStr())"></strong></div>
+                            </div>
+
+                            <!-- ملخص -->
+                            <div class="grid grid-cols-2 md:grid-cols-5 gap-3 text-center">
+                                <div class="border rounded-xl py-3"><div class="text-[11px] text-gray-500">إجمالي المهام</div><div class="text-xl font-black text-gray-800" x-text="reportSummary().total"></div></div>
+                                <div class="border rounded-xl py-3"><div class="text-[11px] text-gray-500">مكتملة</div><div class="text-xl font-black text-emerald-600" x-text="reportSummary().completed"></div></div>
+                                <div class="border rounded-xl py-3"><div class="text-[11px] text-gray-500">جارية</div><div class="text-xl font-black text-amber-600" x-text="reportSummary().pending"></div></div>
+                                <div class="border rounded-xl py-3"><div class="text-[11px] text-gray-500">متأخرة</div><div class="text-xl font-black text-red-600" x-text="reportSummary().overdue"></div></div>
+                                <div class="border rounded-xl py-3 col-span-2 md:col-span-1"><div class="text-[11px] text-gray-500">نسبة الإنجاز</div><div class="text-xl font-black text-indigo-600" x-text="reportSummary().rate + '%'"></div></div>
+                            </div>
+
+                            <!-- ملخص حسب الموظف -->
+                            <template x-if="reportByEmployee().length > 1">
+                                <div class="space-y-2">
+                                    <h4 class="text-sm font-bold text-gray-700">ملخص الأداء حسب الموظف</h4>
+                                    <table class="w-full text-right border-collapse border border-gray-200 text-xs">
+                                        <thead>
+                                            <tr class="bg-gray-100 text-gray-700">
+                                                <th class="p-2 border">الموظف</th>
+                                                <th class="p-2 border text-center">الإجمالي</th>
+                                                <th class="p-2 border text-center">مكتملة</th>
+                                                <th class="p-2 border text-center">جارية</th>
+                                                <th class="p-2 border text-center">متأخرة</th>
+                                                <th class="p-2 border text-center">نسبة الإنجاز</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <template x-for="row in reportByEmployee()" :key="'re-' + row.name">
+                                                <tr>
+                                                    <td class="p-2 border font-bold" x-text="row.name"></td>
+                                                    <td class="p-2 border text-center" x-text="row.total"></td>
+                                                    <td class="p-2 border text-center text-emerald-700" x-text="row.completed"></td>
+                                                    <td class="p-2 border text-center text-amber-700" x-text="row.pending"></td>
+                                                    <td class="p-2 border text-center text-red-700" x-text="row.overdue"></td>
+                                                    <td class="p-2 border text-center font-bold" x-text="row.rate + '%'"></td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </template>
+
+                            <!-- تفاصيل المهام -->
+                            <div class="space-y-2">
+                                <h4 class="text-sm font-bold text-gray-700">تفاصيل المهام</h4>
+                                <table class="w-full text-right border-collapse border border-gray-200">
+                                    <thead>
+                                        <tr class="bg-gray-100 text-gray-700 text-sm">
+                                            <th class="p-2.5 border text-center w-10">#</th>
+                                            <th class="p-2.5 border">عنوان المهمة</th>
+                                            <th class="p-2.5 border">المسؤول</th>
+                                            <th class="p-2.5 border whitespace-nowrap">تاريخ النهاية</th>
+                                            <th class="p-2.5 border">الحالة</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-sm">
+                                        <template x-for="(task, index) in getReportTasks()" :key="'rr-' + index + '-' + task.id">
+                                            <tr>
+                                                <td class="p-2.5 border text-center font-mono font-bold text-gray-500" x-text="index + 1"></td>
+                                                <td class="p-2.5 border font-bold" x-text="task.title"></td>
+                                                <td class="p-2.5 border text-gray-700" x-text="task.assignee"></td>
+                                                <td class="p-2.5 border font-mono text-xs whitespace-nowrap" x-text="task.date ? fmtDate(task.date) : '—'"></td>
+                                                <td class="p-2.5 border">
+                                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold whitespace-nowrap"
+                                                          :class="task.status === 'completed' ? 'bg-emerald-100 text-emerald-800' : (isOverdue(task) ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800')"
+                                                          x-text="statusLabel(task)"></span>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                        <template x-if="getReportTasks().length === 0">
+                                            <tr><td colspan="5" class="p-6 text-center text-gray-400">لا توجد مهام مطابقة لخيارات التقرير</td></tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-10 pt-8 text-center text-xs text-gray-600">
+                                <div><div class="border-t border-gray-400 pt-2">إعداد</div></div>
+                                <div><div class="border-t border-gray-400 pt-2">اعتماد</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============ 3) تبويب KPIs ============ -->
+                <div x-show="activeTab === 'kpis' && isAdmin()" class="space-y-6">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                        <h2 class="text-lg font-bold text-gray-800 mb-6">تحليلات مؤشرات الأداء (KPIs)</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <template x-for="kpi in getDetailedKpis()" :key="'k-' + kpi.username">
+                                <div class="bg-slate-50 border border-gray-200 rounded-2xl p-5 shadow-sm space-y-3 relative overflow-hidden">
+                                    <div class="absolute top-0 right-0 w-2 h-full" :class="kpi.rate >= 80 ? 'bg-emerald-500' : (kpi.rate >= 50 ? 'bg-amber-500' : 'bg-red-500')"></div>
+                                    <div class="flex justify-between items-center pr-2">
+                                        <div>
+                                            <h4 class="font-bold text-gray-800 text-base" x-text="kpi.username"></h4>
+                                            <span class="text-xs px-2 py-0.5 rounded-full font-bold bg-blue-100 text-blue-700" x-text="kpi.position"></span>
+                                        </div>
+                                        <span class="text-2xl font-black text-indigo-600" x-text="kpi.rate + '%'"></span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                        <div class="h-2 rounded-full" :class="kpi.rate >= 80 ? 'bg-emerald-500' : (kpi.rate >= 50 ? 'bg-amber-500' : 'bg-red-500')" :style="'width:' + kpi.rate + '%'"></div>
+                                    </div>
+                                    <div class="text-xs text-gray-500 grid grid-cols-4 gap-1 pt-2 border-t text-center">
+                                        <span>الإجمالي<br><strong class="text-gray-700 text-sm" x-text="kpi.total"></strong></span>
+                                        <span>منجزة<br><strong class="text-emerald-600 text-sm" x-text="kpi.completed"></strong></span>
+                                        <span>جارية<br><strong class="text-amber-600 text-sm" x-text="kpi.pending"></strong></span>
+                                        <span>متأخرة<br><strong class="text-red-600 text-sm" x-text="kpi.overdue"></strong></span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============ 4) تبويب المستخدمين ============ -->
+                <div x-show="activeTab === 'users' && isAdmin()" class="space-y-6">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex justify-between items-center">
+                        <h2 class="text-lg font-bold text-gray-800">إدارة المستخدمين والصلاحيات</h2>
+                        <button @click="openAddUserModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2.5 rounded-xl transition shadow-md">
+                            <i class="fas fa-user-plus"></i> إضافة مستخدم
+                        </button>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">
+                        <table class="w-full text-right border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50 text-gray-600 text-sm border-b">
+                                    <th class="p-4">اسم المستخدم</th>
+                                    <th class="p-4">المسمى الوظيفي</th>
+                                    <th class="p-4">الصلاحية</th>
+                                    <th class="p-4 text-center">عدد المهام</th>
+                                    <th class="p-4 text-center">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 text-sm">
+                                <template x-for="user in usersList" :key="'u-' + user.username">
+                                    <tr class="hover:bg-gray-50/60 transition">
+                                        <td class="p-4 font-bold text-gray-800" x-text="user.username"></td>
+                                        <td class="p-4" x-text="user.position"></td>
+                                        <td class="p-4"><span class="text-xs px-2.5 py-1 rounded-full font-bold bg-indigo-50 text-indigo-700" x-text="roleLabel(user.role)"></span></td>
+                                        <td class="p-4 text-center" x-text="tasks.filter(t => t.assignee.toLowerCase() === user.username.toLowerCase()).length"></td>
+                                        <td class="p-4 text-center">
+                                            <template x-if="user.username.toLowerCase() !== 'omar'">
+                                                <button @click="deleteUser(user)" class="bg-red-50 text-red-600 hover:bg-red-100 px-3 py-1.5 rounded-lg text-xs font-bold transition">حذف</button>
+                                            </template>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </template>
+
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwuv73aHSXbyBF3NdswaDpJ_zS0FNgzRZzdrxyq3zD7yxJVDp1M4YthdN_U53Bsiiq2/exec";
+
+        function hrApp() {
+            return {
+                // ---------- الحالة ----------
+                isLoggedIn: false,
+                loggingIn: false,
+                loginUser: '',
+                loginPass: '',
+                loginError: false,
+                loginErrorMsg: '',
+                currentUserObj: { username: '', role: 'user', position: '' },
+                activeTab: 'tasks',
+                taskViewMode: 'mine',
+                displayMode: 'list',
+                taskSearch: '',
+                connection: 'connecting', // connecting | online | offline
+                lastError: '',
+                isSyncing: false,
+                saving: false,
+                tasks: [],
+                usersList: [],
+                rf: { user: '', status: 'all', from: '', to: '', sort: 'date' },
+                newTask: { title: '', assignee: '', date: '' },
+
+                async init() {
+                    await this.loadData();
+                },
+
+                // ---------- أدوات مساعدة ----------
+                esc(s) {
+                    return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+                },
+                pad(n) { return String(n).padStart(2, '0'); },
+                localDateStr(d = new Date()) {
+                    return d.getFullYear() + '-' + this.pad(d.getMonth() + 1) + '-' + this.pad(d.getDate());
+                },
+                todayStr() { return this.localDateStr(new Date()); },
+
+                // تحويل أي صيغة تاريخ قادمة من الشيت إلى YYYY-MM-DD بدون إزاحة يوم بسبب المنطقة الزمنية
+                formatTaskDate(raw) {
+                    if (raw === null || raw === undefined) return '';
+                    let s = String(raw).trim();
+                    if (!s) return '';
+                    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+                    if (/^\d{4}-\d{2}-\d{2}T/.test(s)) {
+                        const d = new Date(s);
+                        if (!isNaN(d)) return new Date(d.getTime() + 12 * 3600 * 1000).toISOString().slice(0, 10);
+                        return s.slice(0, 10);
+                    }
+                    const m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/);
+                    if (m) return m[3] + '-' + this.pad(m[2]) + '-' + this.pad(m[1]);
+                    const d = new Date(s);
+                    if (!isNaN(d)) return this.localDateStr(d);
+                    return s;
+                },
+                fmtDate(iso) {
+                    if (!iso) return '';
+                    const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                    return m ? (m[3] + '/' + m[2] + '/' + m[1]) : iso;
+                },
+                dayNumber(iso) {
+                    const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                    if (!m) return NaN;
+                    return Date.UTC(+m[1], +m[2] - 1, +m[3]) / 86400000;
+                },
+
+                roleLabel(r) { return ({ admin: 'مدير النظام', supervisor: 'مشرف', user: 'موظف' })[r] || 'موظف'; },
+
+                toast(icon, title) {
+                    Swal.fire({ toast: true, position: 'top-start', icon, title, timer: 2000, showConfirmButton: false, timerProgressBar: true });
+                },
+
+                // ---------- حالة المهمة ----------
+                isOverdue(t) { return t.status === 'pending' && !!t.date && t.date < this.todayStr(); },
+                isToday(d) { return !!d && d === this.todayStr(); },
+                overdueDays(t) {
+                    const diff = this.dayNumber(this.todayStr()) - this.dayNumber(t.date);
+                    return isNaN(diff) ? 0 : diff;
+                },
+                taskState(t) {
+                    if (t.status === 'completed') return 'done';
+                    if (!t.date) return 'nodate';
+                    if (t.date < this.todayStr()) return 'overdue';
+                    if (t.date === this.todayStr()) return 'today';
+                    return 'upcoming';
+                },
+                statusLabel(t) {
+                    if (t.status === 'completed') return 'مكتملة';
+                    return this.isOverdue(t) ? 'متأخرة' : 'جارية';
+                },
+
+                // ---------- تنظيف بيانات الشيت ----------
+                cleanTask(t) {
+                    let rawStatus = String(t.status ?? '').toLowerCase().trim();
+                    let rawDate = String(t.date ?? '').trim();
+                    // حماية لو الأعمدة مقلوبة
+                    if (/completed|pending/i.test(rawDate)) {
+                        const tmp = rawDate; rawDate = rawStatus; rawStatus = tmp.toLowerCase();
+                    }
+                    return {
+                        id: String(t.id ?? '').trim(),
+                        title: String(t.title ?? '').trim(),
+                        assignee: String(t.assignee ?? '').trim(),
+                        date: this.formatTaskDate(rawDate),
+                        status: (rawStatus.includes('comp') || rawStatus.includes('مكتمل') || rawStatus.includes('done')) ? 'completed' : 'pending',
+                        comments: String(t.comments ?? ''),
+                        newCommentText: ''
+                    };
+                },
+                cleanUser(u) {
+                    const username = String(u.username ?? '').trim();
+                    let role = String(u.role ?? '').toLowerCase().trim();
+                    if (!['admin', 'supervisor', 'user'].includes(role)) role = 'user';
+                    if (username.toLowerCase() === 'omar') role = 'admin';
+                    return {
+                        username,
+                        password: String(u.password ?? '').trim(),
+                        role,
+                        position: String(u.position ?? '').trim() || 'موظف'
+                    };
+                },
+
+                // ---------- تحميل البيانات ----------
+                async loadData() {
+                    try {
+                        const url = SCRIPT_URL + (SCRIPT_URL.includes('?') ? '&' : '?') + 't=' + Date.now();
+                        const res = await fetch(url);
+                        if (!res.ok) throw new Error('رد الخادم HTTP ' + res.status);
+                        const txt = await res.text();
+                        let data;
+                        try { data = JSON.parse(txt); }
+                        catch (_) { throw new Error('الرابط رجّع صفحة HTML بدل بيانات JSON (غالباً صلاحية النشر ليست "Anyone" أو الرابط قديم)'); }
+                        if (data && data.error) throw new Error('السكريبت رجّع خطأ: ' + data.error);
+                        if (!data || !Array.isArray(data.users)) throw new Error('شكل البيانات غير متوقع، المفتاح users غير موجود. الرد: ' + txt.slice(0, 120));
+                        this.lastError = '';
+
+                        const drafts = {};
+                        this.tasks.forEach(t => { if (t.newCommentText) drafts[t.id] = t.newCommentText; });
+
+                        this.usersList = data.users.map(u => this.cleanUser(u)).filter(u => u.username);
+                        this.tasks = (Array.isArray(data.tasks) ? data.tasks : [])
+                            .map(t => this.cleanTask(t))
+                            .filter(t => t.title !== '')
+                            .map(t => { if (drafts[t.id]) t.newCommentText = drafts[t.id]; return t; });
+
+                        // تحديث بيانات المستخدم الحالي (لو اتغيرت صلاحياته)
+                        if (this.isLoggedIn) {
+                            const me = this.usersList.find(u => u.username.toLowerCase() === this.currentUserObj.username.toLowerCase());
+                            if (me) this.currentUserObj = { ...me };
+                        }
+                        this.connection = 'online';
+                        return true;
+                    } catch (e) {
+                        console.error('Load error:', e);
+                        this.lastError = (e && e.message === 'Failed to fetch')
+                            ? 'المتصفح منع الطلب (Failed to fetch): غالباً النشر ليس "Anyone" أو في مشكلة إنترنت/حظر'
+                            : String((e && e.message) || e);
+                        this.connection = 'offline';
+                        return false;
+                    }
+                },
+
+                async syncData(showNotice = false) {
+                    this.isSyncing = true;
+                    this.connection = 'connecting';
+                    const ok = await this.loadData();
+                    this.isSyncing = false;
+                    if (showNotice) {
+                        ok ? this.toast('success', 'تم التحديث بنجاح') : this.toast('error', 'تعذر الاتصال بقاعدة البيانات');
+                    }
+                },
+
+                // إرسال أمر للسكريبت (no-cors لا يسمح بقراءة الرد، لذلك نعيد التحميل بعد الحفظ للتأكد)
+                async post(payload) {
+                    try {
+                        await fetch(SCRIPT_URL, {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                            body: JSON.stringify(payload)
+                        });
+                        return true;
+                    } catch (e) {
+                        console.error('Post error:', e);
+                        Swal.fire({ icon: 'error', title: 'تعذر الحفظ', text: 'تحقق من الاتصال بالإنترنت وحاول مرة أخرى' });
+                        await this.loadData();
+                        return false;
+                    }
+                },
+
+                // ---------- الدخول والخروج ----------
+                async handleLogin() {
+                    if (this.loggingIn) return;
+                    this.loginError = false;
+                    this.loggingIn = true;
+                    // دائماً نجلب أحدث المستخدمين قبل التحقق
+                    await this.loadData();
+                    this.loggingIn = false;
+
+                    if (this.connection !== 'online' || this.usersList.length === 0) {
+                        this.loginError = true;
+                        this.loginErrorMsg = 'تعذر الاتصال بقاعدة البيانات، تأكد من الإنترنت وحاول مرة أخرى';
+                        return;
+                    }
+                    const u = this.loginUser.trim().toLowerCase();
+                    const p = this.loginPass.trim();
+                    const found = this.usersList.find(x => x.username.toLowerCase() === u && x.password === p);
+                    if (found) {
+                        this.currentUserObj = { ...found };
+                        this.isLoggedIn = true;
+                        this.taskViewMode = 'mine';
+                        this.activeTab = 'tasks';
+                        this.loginPass = '';
+                        this.rf.user = this.canSeeAllReports() ? '' : found.username;
+                    } else {
+                        this.loginError = true;
+                        this.loginErrorMsg = 'اسم المستخدم أو كلمة المرور غير صحيحة!';
+                    }
+                },
+
+                logout() {
+                    this.isLoggedIn = false;
+                    this.currentUserObj = { username: '', role: 'user', position: '' };
+                    this.loginUser = '';
+                    this.loginPass = '';
+                },
+
+                // ---------- الصلاحيات ----------
+                isOwner() { return this.currentUserObj.username.toLowerCase() === 'omar'; },
+                isAdmin() { return this.currentUserObj.role === 'admin'; },
+                canAssignTasks() { return ['admin', 'supervisor'].includes(this.currentUserObj.role); },
+                canSeeAllReports() { return this.canAssignTasks(); },
+                canEditTask(t) {
+                    return this.canAssignTasks() || t.assignee.toLowerCase() === this.currentUserObj.username.toLowerCase();
+                },
+                getAllowedAssignees() {
+                    return this.usersList.filter(u => u.username.toLowerCase() !== 'omar');
+                },
+
+                // ---------- قوائم المهام والترتيب ----------
+                matchSearch(t) {
+                    const q = this.taskSearch.trim().toLowerCase();
+                    if (!q) return true;
+                    return t.title.toLowerCase().includes(q) || t.assignee.toLowerCase().includes(q);
+                },
+                getFilteredTasks() {
+                    const me = (this.currentUserObj.username || '').toLowerCase();
+                    return this.tasks.filter(t => {
+                        if (this.taskViewMode === 'mine' && t.assignee.toLowerCase() !== me) return false;
+                        return this.matchSearch(t);
+                    });
+                },
+                // الجارية: المتأخرة (الأقدم أولاً) ← اليوم ← القادمة بالأقرب ← بدون تاريخ
+                getPendingTasks() {
+                    return this.getFilteredTasks()
+                        .filter(t => t.status === 'pending')
+                        .sort((a, b) => {
+                            const da = a.date || '9999-12-31', db = b.date || '9999-12-31';
+                            if (da !== db) return da < db ? -1 : 1;
+                            return a.assignee.localeCompare(b.assignee) || a.title.localeCompare(b.title, 'ar');
+                        });
+                },
+                // المكتملة: الأحدث أولاً
+                getCompletedTasks() {
+                    return this.getFilteredTasks()
+                        .filter(t => t.status === 'completed')
+                        .sort((a, b) => {
+                            const da = a.date || '0000-00-00', db = b.date || '0000-00-00';
+                            if (da !== db) return da < db ? 1 : -1;
+                            return a.title.localeCompare(b.title, 'ar');
+                        });
+                },
+                getOverdueTasks() { return this.getFilteredTasks().filter(t => this.isOverdue(t)); },
+                getCompletionRate() {
+                    const list = this.getFilteredTasks();
+                    if (!list.length) return 0;
+                    return Math.round((list.filter(t => t.status === 'completed').length / list.length) * 100);
+                },
+
+                // ---------- التقارير ----------
+                getReportTasks() {
+                    let list = [...this.tasks];
+                    const user = this.canSeeAllReports() ? this.rf.user : this.currentUserObj.username;
+                    if (user) list = list.filter(t => t.assignee.toLowerCase() === user.toLowerCase());
+
+                    if (this.rf.status === 'completed') list = list.filter(t => t.status === 'completed');
+                    else if (this.rf.status === 'pending') list = list.filter(t => t.status === 'pending');
+                    else if (this.rf.status === 'overdue') list = list.filter(t => this.isOverdue(t));
+
+                    if (this.rf.from) list = list.filter(t => t.date && t.date >= this.rf.from);
+                    if (this.rf.to) list = list.filter(t => t.date && t.date <= this.rf.to);
+
+                    const rank = t => t.status === 'completed' ? 2 : (this.isOverdue(t) ? 0 : 1);
+                    const byDate = (a, b) => {
+                        const da = a.date || '9999-12-31', db = b.date || '9999-12-31';
+                        return da === db ? 0 : (da < db ? -1 : 1);
+                    };
+                    list.sort((a, b) => {
+                        if (this.rf.sort === 'employee') {
+                            return a.assignee.localeCompare(b.assignee) || rank(a) - rank(b) || byDate(a, b);
+                        }
+                        if (this.rf.sort === 'status') {
+                            return rank(a) - rank(b) || byDate(a, b) || a.assignee.localeCompare(b.assignee);
+                        }
+                        return byDate(a, b) || a.assignee.localeCompare(b.assignee) || a.title.localeCompare(b.title, 'ar');
+                    });
+                    return list;
+                },
+                reportSummary() {
+                    const list = this.getReportTasks();
+                    const completed = list.filter(t => t.status === 'completed').length;
+                    const overdue = list.filter(t => this.isOverdue(t)).length;
+                    return {
+                        total: list.length,
+                        completed,
+                        pending: list.length - completed,
+                        overdue,
+                        rate: list.length ? Math.round((completed / list.length) * 100) : 0
+                    };
+                },
+                reportByEmployee() {
+                    const map = {};
+                    this.getReportTasks().forEach(t => {
+                        const k = t.assignee || '—';
+                        if (!map[k]) map[k] = { name: k, total: 0, completed: 0, pending: 0, overdue: 0 };
+                        map[k].total++;
+                        if (t.status === 'completed') map[k].completed++;
+                        else { map[k].pending++; if (this.isOverdue(t)) map[k].overdue++; }
+                    });
+                    return Object.values(map)
+                        .map(r => ({ ...r, rate: r.total ? Math.round((r.completed / r.total) * 100) : 0 }))
+                        .sort((a, b) => a.name.localeCompare(b.name));
+                },
+                reportPeriodText() {
+                    if (!this.rf.from && !this.rf.to) return 'كل الفترات';
+                    if (this.rf.from && this.rf.to) return 'من ' + this.fmtDate(this.rf.from) + ' إلى ' + this.fmtDate(this.rf.to);
+                    return this.rf.from ? ('من ' + this.fmtDate(this.rf.from)) : ('حتى ' + this.fmtDate(this.rf.to));
+                },
+                reportStatusText() {
+                    return ({ all: 'الكل', pending: 'الجارية', overdue: 'المتأخرة', completed: 'المكتملة' })[this.rf.status];
+                },
+                setPeriod(p) {
+                    const now = new Date();
+                    const y = now.getFullYear(), m = now.getMonth();
+                    if (p === 'all') { this.rf.from = ''; this.rf.to = ''; }
+                    else if (p === 'today') { this.rf.from = this.rf.to = this.todayStr(); }
+                    else if (p === 'week') { // الأسبوع يبدأ السبت
+                        const offset = (now.getDay() + 1) % 7;
+                        const start = new Date(y, m, now.getDate() - offset);
+                        const end = new Date(y, m, now.getDate() - offset + 6);
+                        this.rf.from = this.localDateStr(start); this.rf.to = this.localDateStr(end);
+                    }
+                    else if (p === 'month') { this.rf.from = this.localDateStr(new Date(y, m, 1)); this.rf.to = this.localDateStr(new Date(y, m + 1, 0)); }
+                    else if (p === 'lastmonth') { this.rf.from = this.localDateStr(new Date(y, m - 1, 1)); this.rf.to = this.localDateStr(new Date(y, m, 0)); }
+                },
+                printReport() { window.print(); },
+                exportCsv() {
+                    const rows = this.getReportTasks();
+                    const head = ['#', 'عنوان المهمة', 'المسؤول', 'تاريخ النهاية', 'الحالة'];
+                    const lines = [head, ...rows.map((t, i) => [i + 1, t.title, t.assignee, this.fmtDate(t.date), this.statusLabel(t)])];
+                    const csv = '\ufeff' + lines.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\r\n');
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+                    a.download = 'hr-tasks-report-' + this.todayStr() + '.csv';
+                    document.body.appendChild(a); a.click(); a.remove();
+                },
+
+                // ---------- KPIs ----------
+                getDetailedKpis() {
+                    return this.usersList.filter(u => u.username.toLowerCase() !== 'omar').map(user => {
+                        const list = this.tasks.filter(t => t.assignee.toLowerCase() === user.username.toLowerCase());
+                        const completed = list.filter(t => t.status === 'completed').length;
+                        const overdue = list.filter(t => this.isOverdue(t)).length;
+                        return {
+                            username: user.username, position: user.position,
+                            total: list.length, completed, pending: list.length - completed, overdue,
+                            rate: list.length ? Math.round((completed / list.length) * 100) : 0
+                        };
+                    });
+                },
+
+                // ---------- عمليات المهام ----------
+                async addTask() {
+                    const title = this.newTask.title.trim();
+                    if (!title) { this.toast('warning', 'اكتب عنوان المهمة أولاً'); return; }
+                    if (this.saving) return;
+                    this.saving = true;
+
+                    const assignee = this.canAssignTasks() ? (this.newTask.assignee || this.currentUserObj.username) : this.currentUserObj.username;
+                    const task = {
+                        id: String(Date.now()),
+                        title,
+                        assignee,
+                        date: this.newTask.date || this.todayStr(),
+                        status: 'pending',
+                        comments: ''
+                    };
+                    this.tasks.unshift(this.cleanTask(task));
+                    this.newTask = { title: '', assignee: '', date: '' };
+
+                    const ok = await this.post({ action: 'add_task', task });
+                    if (ok) {
+                        await this.loadData();
+                        this.toast('success', assignee.toLowerCase() === this.currentUserObj.username.toLowerCase() ? 'تمت إضافة المهمة' : ('تمت إضافة المهمة إلى ' + assignee));
+                    }
+                    this.saving = false;
+                },
+
+                async editTaskModal(task) {
+                    const { value: vals } = await Swal.fire({
+                        title: 'تعديل المهمة',
+                        html: `
+                            <div style="text-align:right">
+                                <label style="font-size:12px;font-weight:700;display:block;margin-bottom:4px">عنوان المهمة</label>
+                                <input id="swal-edit-title" class="swal2-input" style="width:100%;margin:0 0 12px" value="${this.esc(task.title)}">
+                                <label style="font-size:12px;font-weight:700;display:block;margin-bottom:4px">تاريخ النهاية</label>
+                                <input id="swal-edit-date" type="date" class="swal2-input" style="width:100%;margin:0" value="${this.esc(task.date)}">
+                            </div>`,
+                        focusConfirm: false,
+                        showCancelButton: true,
+                        confirmButtonText: 'حفظ',
+                        cancelButtonText: 'إلغاء',
+                        preConfirm: () => {
+                            const t = document.getElementById('swal-edit-title').value.trim();
+                            if (!t) { Swal.showValidationMessage('العنوان مطلوب'); return false; }
+                            return [t, document.getElementById('swal-edit-date').value];
+                        }
+                    });
+                    if (!vals) return;
+                    const [newTitle, newDate] = vals;
+                    task.title = newTitle;
+                    task.date = newDate;
+                    const ok = await this.post({ action: 'update_task', id: String(task.id), title: newTitle, date: newDate });
+                    if (ok) { await this.loadData(); this.toast('success', 'تم التحديث بنجاح'); }
+                },
+
+                commentLines(task) {
+                    return String(task.comments || '').split('\n').map(s => s.trim()).filter(Boolean);
+                },
+                buildComment(text) {
+                    const d = new Date();
+                    const stamp = d.toLocaleDateString('ar-EG') + ' ' + d.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+                    return '[' + this.currentUserObj.username + ' (' + this.currentUserObj.position + ') - ' + stamp + ']: ' + text.trim();
+                },
+                async pushComment(task, text) {
+                    task.comments = task.comments ? (task.comments + '\n' + this.buildComment(text)) : this.buildComment(text);
+                    await this.post({ action: 'update_comments', id: String(task.id), comments: task.comments });
+                },
+                async addComment(task) {
+                    const text = (task.newCommentText || '').trim();
+                    if (!text) return;
+                    task.newCommentText = '';
+                    await this.pushComment(task, text);
+                },
+                async openComments(task) {
+                    const lines = this.commentLines(task);
+                    const list = lines.length
+                        ? lines.map(l => `<div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px;margin-bottom:6px;font-size:13px;text-align:right;white-space:pre-line">${this.esc(l)}</div>`).join('')
+                        : '<p style="color:#9ca3af;font-size:13px">لا توجد تعليقات بعد...</p>';
+                    const { value } = await Swal.fire({
+                        title: this.esc(task.title),
+                        html: `<div style="max-height:260px;overflow:auto;margin-bottom:10px">${list}</div>
+                               <textarea id="swal-cmt" class="swal2-textarea" style="width:100%;margin:0" placeholder="اكتب تعليقاً جديداً..."></textarea>`,
+                        showCancelButton: true,
+                        confirmButtonText: 'إرسال تعليق',
+                        cancelButtonText: 'إغلاق',
+                        preConfirm: () => document.getElementById('swal-cmt').value.trim()
+                    });
+                    if (value) await this.pushComment(task, value);
+                },
+
+                async markAsCompleted(task) {
+                    const r = await Swal.fire({ title: 'إتمام المهمة؟', text: task.title, icon: 'question', showCancelButton: true, confirmButtonText: 'نعم، تمت', cancelButtonText: 'إلغاء' });
+                    if (!r.isConfirmed) return;
+                    task.status = 'completed';
+                    const ok = await this.post({ action: 'update_status', id: String(task.id), status: 'completed' });
+                    if (ok) { await this.loadData(); this.toast('success', 'تم إتمام المهمة'); }
+                },
+                async reopenTask(task) {
+                    task.status = 'pending';
+                    const ok = await this.post({ action: 'update_status', id: String(task.id), status: 'pending' });
+                    if (ok) { await this.loadData(); this.toast('success', 'تمت إعادة فتح المهمة'); }
+                },
+                async deleteTask(task) {
+                    if (!this.isOwner()) {
+                        Swal.fire('خطأ', 'صلاحية الحذف مخصصة للمسؤول الرئيسي فقط', 'error');
+                        return;
+                    }
+                    const r = await Swal.fire({ title: 'حذف المهمة؟', text: task.title, icon: 'warning', showCancelButton: true, confirmButtonText: 'نعم، احذف', cancelButtonText: 'إلغاء' });
+                    if (!r.isConfirmed) return;
+                    this.tasks = this.tasks.filter(t => t !== task && !(t.id === task.id && t.title === task.title));
+                    const ok = await this.post({ action: 'delete_task', id: String(task.id) });
+                    if (ok) { await this.loadData(); this.toast('success', 'تم حذف المهمة'); }
+                },
+
+                // ---------- المستخدمون ----------
+                // نجلب أحدث قائمة، نطبق التعديل، ثم نحفظ — لتجنب الكتابة فوق بيانات أحدث
+                async mutateUsers(fn) {
+                    await this.loadData();
+                    if (this.connection !== 'online') {
+                        Swal.fire({ icon: 'error', title: 'تعذر الاتصال', text: 'لم يتم الحفظ حفاظاً على سلامة بيانات المستخدمين' });
+                        return false;
+                    }
+                    const proceed = fn();
+                    if (proceed === false) return false;
+                    const ok = await this.post({ action: 'save_users', users: this.usersList });
+                    if (ok) await this.loadData();
+                    return ok;
+                },
+
+                async openAddUserModal() {
+                    const { value: vals } = await Swal.fire({
+                        title: 'إضافة مستخدم',
+                        html: `
+                            <input id="nu-u" class="swal2-input" placeholder="اسم المستخدم (مثال: Ahmed.Ali)">
+                            <input id="nu-p" type="text" class="swal2-input" placeholder="كلمة المرور">
+                            <input id="nu-pos" class="swal2-input" placeholder="المسمى الوظيفي (افتراضي: موظف)">
+                            <select id="nu-role" class="swal2-select" style="width:80%;display:flex;margin:12px auto 0">
+                                <option value="user">موظف</option>
+                                <option value="supervisor">مشرف (يسند مهام)</option>
+                                <option value="admin">مدير النظام</option>
+                            </select>`,
+                        focusConfirm: false,
+                        showCancelButton: true,
+                        confirmButtonText: 'إضافة',
+                        cancelButtonText: 'إلغاء',
+                        preConfirm: () => {
+                            const u = document.getElementById('nu-u').value.trim();
+                            const p = document.getElementById('nu-p').value.trim();
+                            if (!u || !p) { Swal.showValidationMessage('اسم المستخدم وكلمة المرور مطلوبان'); return false; }
+                            return [u, p, document.getElementById('nu-pos').value.trim(), document.getElementById('nu-role').value];
+                        }
+                    });
+                    if (!vals) return;
+                    const [username, password, position, role] = vals;
+                    const ok = await this.mutateUsers(() => {
+                        if (this.usersList.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+                            Swal.fire('تنبيه', 'اسم المستخدم موجود بالفعل', 'warning');
+                            return false;
+                        }
+                        this.usersList.push({ username, password, role, position: position || 'موظف' });
+                    });
+                    if (ok) this.toast('success', 'تمت إضافة المستخدم');
+                },
+
+                async deleteUser(user) {
+                    if (user.username.toLowerCase() === 'omar') return;
+                    const r = await Swal.fire({ title: 'حذف المستخدم؟', text: user.username, icon: 'warning', showCancelButton: true, confirmButtonText: 'نعم، احذف', cancelButtonText: 'إلغاء' });
+                    if (!r.isConfirmed) return;
+                    const ok = await this.mutateUsers(() => {
+                        this.usersList = this.usersList.filter(u => u.username.toLowerCase() !== user.username.toLowerCase());
+                    });
+                    if (ok) this.toast('success', 'تم حذف المستخدم');
+                },
+
+                async openChangePasswordModal() {
+                    const { value: pass } = await Swal.fire({
+                        title: 'تغيير كلمة المرور',
+                        input: 'password',
+                        inputPlaceholder: 'كلمة المرور الجديدة',
+                        showCancelButton: true,
+                        confirmButtonText: 'حفظ',
+                        cancelButtonText: 'إلغاء',
+                        inputValidator: v => (!v || v.trim().length < 4) ? 'كلمة المرور يجب ألا تقل عن 4 أحرف/أرقام' : null
+                    });
+                    if (!pass) return;
+                    const me = this.currentUserObj.username.toLowerCase();
+                    const ok = await this.mutateUsers(() => {
+                        const found = this.usersList.find(u => u.username.toLowerCase() === me);
+                        if (!found) return false;
+                        found.password = pass.trim();
+                    });
+                    if (ok) this.toast('success', 'تم تغيير كلمة المرور');
+                }
+            };
+        }
+    </script>
+</body>
+</html>
